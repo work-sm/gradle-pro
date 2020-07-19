@@ -1,0 +1,27 @@
+plugins {
+    id 'org.springframework.boot' version '2.0.4.RELEASE'
+    id 'io.spring.dependency-management' version '1.0.9.RELEASE'
+    id 'java'
+}
+
+group 'com.sam'
+version '1.0-SNAPSHOT'
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+[compileJava,compileTestJava]*.options*.encoding ='UTF-8'
+
+repositories {
+    maven {url 'https://maven.aliyun.com/repository/public/'}
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.projectlombok:lombok'
+    implementation 'com.google.guava:guava:29.0-jre'
+    implementation 'org.slf4j:slf4j-simple'
+    implementation 'com.alibaba:fastjson:1.2.72'
+    implementation 'com.netflix.hystrix:hystrix-core:1.5.12'
+    implementation 'org.springframework:spring-context'
+
+    testImplementation 'junit:junit'
+}
