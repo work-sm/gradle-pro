@@ -18,7 +18,7 @@ repositories {
 dependencies {
     implementation 'org.projectlombok:lombok'
     implementation 'com.google.guava:guava:29.0-jre'
-    implementation 'org.slf4j:slf4j-simple'
+    implementation 'org.slf4j:slf4j-log4j12'
     implementation 'org.apache.commons:commons-lang3'
     implementation 'commons-io:commons-io:2.7'
     implementation 'com.alibaba:fastjson:1.2.72'

@@ -32,12 +32,13 @@ public class WriterConsole implements Closeable {
         bw.flush();
     }
 
-    private void start() {
+    public void start() {
         Runnable runnable = () -> {
             while (!closed) {
                 try {
                     semaphore.acquire();
                     bw.write(command + "\n");
+                    log.info("发出命令 [{}]", command);
                     bw.flush();
                 } catch (InterruptedException e) {
                     log.error("等待异常", e);
@@ -55,7 +56,7 @@ public class WriterConsole implements Closeable {
     }
 
     public void exec(String command) {
-        if(StringUtils.isEmpty(command)){
+        if (StringUtils.isEmpty(command)) {
             throw new NullPointerException(command);
         }
         this.command = command;

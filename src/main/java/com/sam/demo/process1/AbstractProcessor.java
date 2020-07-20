@@ -20,14 +20,13 @@ public abstract class AbstractProcessor implements Processor {
     private final String exe;
     private final File home;
 
+    private BlockingQueue<String> queue;
+
     private WriterConsole writerConsole;
     private ReaderConsole readerConsole;
 
     private volatile boolean closed;
-    private Semaphore semaphore = new Semaphore(0);
-    private Semaphore paramsSign = new Semaphore(0);
-
-    private BlockingQueue<String> queue = new LinkedBlockingQueue<>();
+    private Semaphore lock;
 
     public AbstractProcessor(String exeFullName) throws IOException {
         if (StringUtils.isEmpty(exeFullName)) {
@@ -51,10 +50,16 @@ public abstract class AbstractProcessor implements Processor {
         InputStream errorStream = process.getErrorStream();
         writerConsole = new WriterConsole(outputStream);
         readerConsole = new ReaderConsole(inputStream, errorStream);
+        lock = new Semaphore(0);
+        queue = new LinkedBlockingQueue<>();
     }
 
     public File home() {
         return home;
+    }
+
+    public void sign(String sign) {
+        readerConsole.sign(sign);
     }
 
     @Override
@@ -67,7 +72,7 @@ public abstract class AbstractProcessor implements Processor {
 
     public void close() throws IOException, InterruptedException {
         this.closed = true;
-        semaphore.acquire();
+        lock.acquire();
         writerConsole.close();
         readerConsole.close();
         queue.clear();
@@ -75,34 +80,33 @@ public abstract class AbstractProcessor implements Processor {
 
     @Override
     public void run() {
-        String result = null;
+        String reason;
+        String params;
+        readerConsole.start();
+        writerConsole.start();
         while (!this.closed) {
-            String params = null;
             try {
                 params = queue.poll(1000, TimeUnit.SECONDS);
             } catch (InterruptedException e) {
                 if (this.closed) {
                     log.info("处理器关闭");
-                    semaphore.release();
+                    lock.release();
                 }
                 continue;
             }
             try {
-                try {
-                    next(params);
-                } finally {
-                    semaphore.release();
-                }
-                semaphore.acquire();
+                next(params);
+                log.info("写入参数 [{}]", params);
 
                 writerConsole.exec(exe);
                 boolean state = readerConsole.getState();
+                log.info("命令完成 [{}]", state);
                 if (state) {
                     completed();
                 } else {
-                    error();
+                    reason = readerConsole.getReason();
+                    error(reason);
                 }
-                log.info("===[{}]===[{}]===", params, result);
             } catch (Exception e) {
                 log.error("处理过程异常", e);
             }
@@ -110,7 +114,7 @@ public abstract class AbstractProcessor implements Processor {
 
         if (this.closed) {
             log.info("处理器关闭");
-            semaphore.release();
+            lock.release();
         }
     }
 
@@ -118,6 +122,6 @@ public abstract class AbstractProcessor implements Processor {
 
     protected abstract void completed() throws Exception;
 
-    protected abstract void error() throws Exception;
+    protected abstract void error(String reason) throws Exception;
 
 }

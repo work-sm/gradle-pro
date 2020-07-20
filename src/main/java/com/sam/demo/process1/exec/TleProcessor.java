@@ -6,13 +6,13 @@ import java.io.*;
 
 public class TleProcessor extends AbstractProcessor {
 
-    private File tle;
-    private File kepl;
+    private RandomAccessFile raf;
+    private RandomAccessFile bfr;
 
     public TleProcessor(String exeFullName) throws IOException {
         super(exeFullName);
-        tle = new File(home(), "TLE.txt");
-        kepl = new File(home(), "J2000KEPL.TXT");
+        File tle = new File(home(), "TLE.txt");
+        File kepl = new File(home(), "J2000KEPL.TXT");
         if (!tle.exists() || tle.isDirectory()) {
             tle.delete();
             tle.createNewFile();
@@ -21,28 +21,39 @@ public class TleProcessor extends AbstractProcessor {
             kepl.delete();
             kepl.createNewFile();
         }
+        // 重要参数,完成信号
+        sign("Stop - Program terminated.");
+        raf = new RandomAccessFile(tle, "rw");
+        bfr = new RandomAccessFile(kepl, "r");
     }
 
     @Override
     protected void next(String params) throws Exception {
-        try (RandomAccessFile raf = new RandomAccessFile(tle, "rw")) {
-            raf.setLength(0);
-            raf.seek(0);
-            raf.write(params.getBytes());
-        }
+        raf.setLength(0);
+        raf.seek(0);
+        raf.write(params.getBytes());
     }
 
     @Override
     protected void completed() throws Exception {
-        try (BufferedReader bfr = new BufferedReader(new FileReader(kepl))) {
-            String line = bfr.readLine();
-            System.out.println(line);
-        }
+        raf.seek(0);
+        String line = bfr.readLine();
+        System.out.println(line);
     }
 
     @Override
-    protected void error() throws Exception {
-        System.err.println("异常");
+    protected void error(String reason) throws Exception {
+        System.err.println(reason);
+    }
+
+    public void close() throws IOException, InterruptedException {
+        super.close();
+        if (raf != null) {
+            raf.close();
+        }
+        if (bfr != null) {
+            bfr.close();
+        }
     }
 
 }

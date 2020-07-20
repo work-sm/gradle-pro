@@ -5,15 +5,15 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.*;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.Semaphore;
+import java.util.stream.Stream;
 
 @Slf4j
 public class ReaderConsole implements Closeable {
-
-    private Semaphore semaphore = new Semaphore(0);
 
     private CyclicBarrier inputBarrier;
     private CyclicBarrier errorBarrier;
@@ -22,8 +22,10 @@ public class ReaderConsole implements Closeable {
     private BufferedReader errorReader;
     private List<String> signs;
 
-    private boolean state;
+    private volatile boolean state;
+    private StringBuilder reason;
     private volatile boolean closed;
+    private Semaphore lock;
 
     public ReaderConsole(InputStream input, InputStream error) {
         InputStreamReader inputStream = new InputStreamReader(input, Charset.forName("GBK"));
@@ -32,36 +34,48 @@ public class ReaderConsole implements Closeable {
         errorReader = new BufferedReader(errorStream);
         this.closed = false;
         this.signs = new ArrayList<>();
+        this.lock = new Semaphore(0);
         init();
     }
 
     private void init() {
         inputBarrier = new CyclicBarrier(1, () -> {
-            log.info("完成");
+            log.info("命令完成");
             state = true;
-            semaphore.release();
+            lock.release();
         });
         errorBarrier = new CyclicBarrier(1, () -> {
-            log.info("异常");
+            log.error("命令异常");
             state = false;
-            semaphore.release();
+            lock.release();
         });
     }
 
-    private void start() {
+    public void start() {
+        if (signs.isEmpty()) {
+            throw new NullPointerException("signs");
+        }
         Thread inputSteam = new Thread(() -> {
+            String line;
+            String sign;
+            Iterator<String> iterator;
             List<String> temps = new ArrayList<>();
             while (!closed) {
                 try {
                     temps.addAll(signs);
-                    String line;
                     while ((line = inputReader.readLine()) != null) {
-                        for (String sign : temps) {
+                        iterator = temps.iterator();
+                        while (iterator.hasNext()) {
+                            sign = iterator.next();
                             if (line.contains(sign)) {
-                                temps.remove(sign);
+                                log.info("收到命令信号 [{}]", line);
+                                iterator.remove();
                             }
                         }
                         if (temps.size() == 0) {
+                            log.info("收到信号完整");
+                            temps.clear();
+                            temps.addAll(signs);
                             inputReader.lines();
                             inputBarrier.await();
                         }
@@ -72,11 +86,17 @@ public class ReaderConsole implements Closeable {
             }
         });
         Thread errorSteam = new Thread(() -> {
+            String line;
+            Stream<String> lines;
             while (!closed) {
                 try {
-                    String line;
                     while ((line = errorReader.readLine()) != null) {
-                        inputReader.lines();
+                        lines = inputReader.lines();
+                        reason = new StringBuilder();
+                        lines.forEach(lin -> {
+                            reason.append(lin);
+                        });
+                        log.info("收到异常信号 [{}]", reason.toString());
                         errorBarrier.await();
                     }
                 } catch (IOException | InterruptedException | BrokenBarrierException e) {
@@ -93,9 +113,13 @@ public class ReaderConsole implements Closeable {
     }
 
     public boolean getState() throws InterruptedException {
-        semaphore.acquire();
-        semaphore.drainPermits();
+        lock.acquire();
+        lock.drainPermits();
         return state;
+    }
+
+    public String getReason() {
+        return reason.toString();
     }
 
     @Override
