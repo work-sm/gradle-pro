@@ -1,4 +1,4 @@
-package com.sam.demo;
+package com.sam.demo.Test;
 
 import org.junit.Test;
 import rx.Observable;
@@ -17,56 +17,78 @@ import rx.schedulers.Schedulers;
  */
 public class Rxjava {
 
+    /**
+     * 简单
+     */
     @Test
     public void test1() {
         //观察者
         Observer<String> observer = new Observer<String>() {
             public void onCompleted() {
-                System.out.println("onCompleted");
+                System.out.println("observer onCompleted");
             }
 
             public void onError(Throwable e) {
-                System.out.println("onError");
+                System.out.println("observer onError");
             }
 
             public void onNext(String s) {
-                System.out.println("onNext " + s);
+                System.out.println("observer onNext " + s);
             }
         };
         Subscriber<String> subscriber = new Subscriber<String>() {
             public void onCompleted() {
-                System.out.println("onCompleted");
+                System.out.println("subscriber onCompleted");
             }
 
             public void onError(Throwable e) {
-                System.out.println("onError");
+                System.out.println("subscriber onError");
             }
 
             public void onNext(String s) {
-                System.out.println("onNext " + s);
+                System.out.println("subscriber onNext " + s);
             }
         };
 
         Observable<String> observable = Observable.create(new Observable.OnSubscribe<String>() {
             @Override
             public void call(Subscriber<? super String> subscriber) {
-                subscriber.onNext("业务");
+                subscriber.onNext("observable");
                 subscriber.onCompleted();
             }
         });
-
         observable.subscribe(observer);
-
-        observable = Observable.just("Hello", "Hi", "Aloha");
         observable.subscribe(subscriber);
+        System.out.println("====================");
+
+        //下面两种 observable 只能被订阅一次
+        observable = Observable.just("Hello", "Hi", "Aloha");
+        observable.subscribe(observer);
+        observable.subscribe(subscriber);
+        System.out.println("====================");
 
         String[] words = {"Hello", "Hi", "Aloha"};
         observable = Observable.from(words);
-        //只能调一次
         observable.subscribe(observer);
         observable.subscribe(subscriber);
     }
 
+    /**
+     * 散装观察者
+     * Obseravble 创建
+     * just
+     * from
+     * create 实际过程
+     * defer 声明过程
+     *
+     * range 随机数
+     * interval 重复
+     * timer 定时
+     *
+     * empty 直接完成
+     * never 什么也不做
+     * error 错误信号
+     */
     @Test
     public void test2() {
         Action1<String> onNextAction = new Action1<String>() {
@@ -85,9 +107,15 @@ public class Rxjava {
             }
         };
 
-        String[] words = {"Hello", "Hi", "Aloha"};
-        Observable<String> observable = Observable.from(words);
+        Observable<String> observable = Observable.just("Hello", "Hi", "Aloha");
         observable.subscribe(onNextAction, onErrorAction, onCompletedAction);
+
+        Observable<String> never = Observable.never();
+
+        never.subscribe(
+                v -> System.out.println("This should never be printed!"),
+                error -> System.out.println("Or this!"),
+                () -> System.out.println("This neither!"));
     }
 
     /**
@@ -95,6 +123,12 @@ public class Rxjava {
      * Schedulers.newThread(): 在新线程执行操作
      * Schedulers.io(): I/O 操作，线程池，可以重用空闲的线程
      * Schedulers.computation(): CPU 密集型计算
+     *
+     * map
+     * flatMap
+     * concatMap
+     * filter
+     * toList
      */
     @Test
     public void test3() throws InterruptedException {
@@ -120,9 +154,6 @@ public class Rxjava {
                 .subscribeOn(Schedulers.immediate())
                 .observeOn(Schedulers.immediate())
                 //转换传输信息为过程
-                //concatMap
-                //filter
-                //toList
                 .flatMap(new Func1<Integer, Observable<String>>() {
                     @Override
                     public Observable<String> call(Integer student) {
@@ -139,7 +170,8 @@ public class Rxjava {
         Thread.sleep(2000);
     }
 
-    public static void main(String[] args) {
+    @Test
+    public void test4 (){
         //被观察者
         Observable<String> observable = Observable.defer(new Func0<Observable<String>>() {
             @Override
@@ -149,6 +181,7 @@ public class Rxjava {
                     @Override
                     public void call(Subscriber<? super String> subscriber) {
                         subscriber.onNext("事件订阅开始");
+                        subscriber.onCompleted();
                     }
                 });
             }
@@ -165,14 +198,12 @@ public class Rxjava {
             }
         };
 
-        //订阅事件1，没产生一个订阅就会生成一个新的observable对象
         observable.subscribe(new Action1<String>() {
             @Override
             public void call(String s) {
                 System.out.println("观察者2订阅事件    " + s);
             }
         }, onErrorAction, onCompletedAction);
-        //订阅事件2，没产生一个订阅就会生成一个新的observable对象
         observable.subscribe(new Action1<String>() {
             @Override
             public void call(String s) {

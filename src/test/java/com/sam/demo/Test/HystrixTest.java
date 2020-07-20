@@ -1,4 +1,4 @@
-package com.sam.demo;
+package com.sam.demo.Test;
 
 import com.netflix.hystrix.*;
 import com.netflix.hystrix.strategy.concurrency.HystrixRequestContext;
