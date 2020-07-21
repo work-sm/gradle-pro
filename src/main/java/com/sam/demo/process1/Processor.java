@@ -1,5 +1,6 @@
 package com.sam.demo.process1;
 
 public interface Processor extends Runnable {
-    boolean queueUp(String param);
+    void produce(String param);
+    void consume(ProductLine product);
 }

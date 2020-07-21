@@ -28,6 +28,8 @@ public abstract class AbstractProcessor implements Processor {
     private volatile boolean closed;
     private Semaphore lock;
 
+    private ProductLine productLine;
+
     public AbstractProcessor(String exeFullName) throws IOException {
         if (StringUtils.isEmpty(exeFullName)) {
             throw new NullPointerException(exeFullName);
@@ -63,11 +65,15 @@ public abstract class AbstractProcessor implements Processor {
     }
 
     @Override
-    public boolean queueUp(String param) {
+    public void consume(ProductLine productLine) {
+        this.productLine = productLine;
+    }
+
+    @Override
+    public void produce(String param) {
         if (!this.closed) {
-            return queue.add(param);
+            queue.add(param);
         }
-        return false;
     }
 
     public void close() throws IOException, InterruptedException {
@@ -80,8 +86,8 @@ public abstract class AbstractProcessor implements Processor {
 
     @Override
     public void run() {
-        String reason;
         String params;
+        String result;
         readerConsole.start();
         writerConsole.start();
         while (!this.closed) {
@@ -95,18 +101,20 @@ public abstract class AbstractProcessor implements Processor {
                 continue;
             }
             try {
+                log.debug("写入参数 [{}]", params);
                 next(params);
-                log.info("写入参数 [{}]", params);
 
                 writerConsole.exec(exe);
                 boolean state = readerConsole.getState();
-                log.info("命令完成 [{}]", state);
+                log.debug("命令完成 [{}]", state);
                 if (state) {
-                    completed();
+                    long waitTime = waitTime();
+                    Thread.sleep(waitTime);
+                    result = completed();
                 } else {
-                    reason = readerConsole.getReason();
-                    error(reason);
+                    result = readerConsole.getReason();
                 }
+                productLine.output(state, params, result);
             } catch (Exception e) {
                 log.error("处理过程异常", e);
             }
@@ -118,10 +126,10 @@ public abstract class AbstractProcessor implements Processor {
         }
     }
 
+    protected abstract long waitTime();
+
     protected abstract void next(String params) throws Exception;
 
-    protected abstract void completed() throws Exception;
-
-    protected abstract void error(String reason) throws Exception;
+    protected abstract String completed() throws Exception;
 
 }

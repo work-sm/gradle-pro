@@ -40,21 +40,18 @@ public class ReaderConsole implements Closeable {
 
     private void init() {
         inputBarrier = new CyclicBarrier(1, () -> {
-            log.info("命令完成");
+            log.debug("命令完成");
             state = true;
             lock.release();
         });
         errorBarrier = new CyclicBarrier(1, () -> {
-            log.error("命令异常");
+            log.debug("命令异常");
             state = false;
             lock.release();
         });
     }
 
     public void start() {
-        if (signs.isEmpty()) {
-            throw new NullPointerException("signs");
-        }
         Thread inputSteam = new Thread(() -> {
             String line;
             String sign;
@@ -64,16 +61,22 @@ public class ReaderConsole implements Closeable {
                 try {
                     temps.addAll(signs);
                     while ((line = inputReader.readLine()) != null) {
+                        log.debug("==== [{}]", line);
+                        if (signs.isEmpty()) {
+                            inputReader.lines();
+                            inputBarrier.await();
+                            continue;
+                        }
                         iterator = temps.iterator();
                         while (iterator.hasNext()) {
                             sign = iterator.next();
                             if (line.contains(sign)) {
-                                log.info("收到命令信号 [{}]", line);
+                                log.debug("收到命令信号 [{}]", line);
                                 iterator.remove();
                             }
                         }
                         if (temps.size() == 0) {
-                            log.info("收到信号完整");
+                            log.debug("收到信号完整");
                             temps.clear();
                             temps.addAll(signs);
                             inputReader.lines();
@@ -91,12 +94,13 @@ public class ReaderConsole implements Closeable {
             while (!closed) {
                 try {
                     while ((line = errorReader.readLine()) != null) {
-                        lines = inputReader.lines();
+                        lines = errorReader.lines();
                         reason = new StringBuilder();
+                        reason.append(line).append("\n");
                         lines.forEach(lin -> {
-                            reason.append(lin);
+                            reason.append(lin).append("\n");
                         });
-                        log.info("收到异常信号 [{}]", reason.toString());
+                        log.debug("收到异常信号 [{}]", reason.toString());
                         errorBarrier.await();
                     }
                 } catch (IOException | InterruptedException | BrokenBarrierException e) {

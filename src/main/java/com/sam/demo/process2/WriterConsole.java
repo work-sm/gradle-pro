@@ -1,4 +1,4 @@
-package com.sam.demo.process1.console;
+package com.sam.demo.process2;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -6,6 +6,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.io.*;
 import java.nio.charset.Charset;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public class WriterConsole implements Closeable {
@@ -34,19 +35,20 @@ public class WriterConsole implements Closeable {
 
     public void start() {
         Runnable runnable = () -> {
+            boolean sign = false;
             while (!closed) {
                 try {
-                    semaphore.acquire();
+                    sign = semaphore.tryAcquire(500, TimeUnit.MILLISECONDS);
+                } catch (InterruptedException e) {
+                    log.error("等待异常", e);
+                }
+                if(!sign){
+                    continue;
+                }
+                try {
                     bw.write(command + "\n");
                     log.debug("发出命令 [{}]", command);
                     bw.flush();
-                } catch (InterruptedException e) {
-                    log.error("等待异常", e);
-                    try {
-                        Thread.sleep(1000);
-                    } catch (InterruptedException e1) {
-                        log.error("等待异常", e1);
-                    }
                 } catch (IOException e) {
                     log.error("发送命令流异常", e);
                 }

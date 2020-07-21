@@ -1,8 +1,12 @@
 package com.sam.demo.process1.exec;
 
 import com.sam.demo.process1.AbstractProcessor;
+import com.sam.demo.process1.Processor;
+import com.sam.demo.process1.work.SimpleProductLine;
 
 import java.io.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class TleProcessor extends AbstractProcessor {
 
@@ -28,22 +32,25 @@ public class TleProcessor extends AbstractProcessor {
     }
 
     @Override
+    protected long waitTime() {
+        return 0;
+    }
+
+    @Override
     protected void next(String params) throws Exception {
         raf.setLength(0);
         raf.seek(0);
         raf.write(params.getBytes());
     }
 
+    /**
+     * 只是缓存 mark reset
+     * 文件指针 seek
+     */
     @Override
-    protected void completed() throws Exception {
-        raf.seek(0);
-        String line = bfr.readLine();
-        System.out.println(line);
-    }
-
-    @Override
-    protected void error(String reason) throws Exception {
-        System.err.println(reason);
+    protected String completed() throws Exception {
+        bfr.seek(0);
+        return bfr.readLine();
     }
 
     public void close() throws IOException, InterruptedException {
@@ -53,6 +60,36 @@ public class TleProcessor extends AbstractProcessor {
         }
         if (bfr != null) {
             bfr.close();
+        }
+    }
+
+    public static void main(String[] args) throws IOException{
+        String[] params = new String[]{
+                "1 40908U 15049K   20198.78459397  .00000322  00000-0  21304-4 0  9993\n" +
+                        "2 40908  97.4917 197.7237 0014229 282.1605 158.5111 15.14062358266436",
+                "1 00902U 64063E   20202.50348760  .00000030  00000-0  31316-4 0  9990\n" +
+                        "2 00902  90.1619  31.5795 0018818  17.0373  41.7246 13.52685257565000",
+                "1 00900U 64063C   20202.17095681  .00000187  00000-0  19107-3 0  9998\n" +
+                        "2 00900  90.1522  28.9147 0025875 322.1024 146.6777 13.73394820774941"
+        };
+
+        SimpleProductLine simpleProductLine = new SimpleProductLine();
+        ExecutorService service = Executors.newFixedThreadPool(3);
+        Processor processor1 = new TleProcessor("C:\\Users\\Administrator\\Desktop\\runtime\\tle1\\TLE_J2000KEPL.exe");
+        Processor processor2 = new TleProcessor("C:\\Users\\Administrator\\Desktop\\runtime\\tle2\\TLE_J2000KEPL.exe");
+        Processor processor3 = new TleProcessor("C:\\Users\\Administrator\\Desktop\\runtime\\tle3\\TLE_J2000KEPL.exe");
+        processor1.consume(simpleProductLine);
+        processor2.consume(simpleProductLine);
+        processor3.consume(simpleProductLine);
+        service.execute(processor1);
+        service.execute(processor2);
+        service.execute(processor3);
+        service.shutdown();
+
+        for (String param : params) {
+            processor1.produce(param);
+            processor2.produce(param);
+            processor3.produce(param);
         }
     }
 
