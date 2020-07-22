@@ -105,7 +105,7 @@ public abstract class AbstractProcessor implements Processor {
                 next(params);
 
                 writerConsole.exec(exe);
-                boolean state = readerConsole.getState();
+                boolean state = readerConsole.getState(timeout());
                 log.debug("命令完成 [{}]", state);
                 if (state) {
                     long waitTime = waitTime();
@@ -127,6 +127,8 @@ public abstract class AbstractProcessor implements Processor {
     }
 
     protected abstract long waitTime();
+
+    protected abstract long timeout();
 
     protected abstract void next(String params) throws Exception;
 

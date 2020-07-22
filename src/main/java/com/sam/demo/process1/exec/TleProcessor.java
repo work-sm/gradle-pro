@@ -37,6 +37,11 @@ public class TleProcessor extends AbstractProcessor {
     }
 
     @Override
+    protected long timeout() {
+        return 0;
+    }
+
+    @Override
     protected void next(String params) throws Exception {
         raf.setLength(0);
         raf.seek(0);

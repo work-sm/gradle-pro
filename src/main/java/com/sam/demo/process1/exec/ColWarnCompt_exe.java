@@ -38,6 +38,11 @@ public class ColWarnCompt_exe extends AbstractProcessor {
     }
 
     @Override
+    protected long timeout() {
+        return 0;
+    }
+
+    @Override
     protected void next(String params) throws Exception {
 
     }

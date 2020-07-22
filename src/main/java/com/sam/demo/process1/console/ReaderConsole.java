@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
 @Slf4j
@@ -116,8 +117,12 @@ public class ReaderConsole implements Closeable {
         signs.add(sign);
     }
 
-    public boolean getState() throws InterruptedException {
-        lock.acquire();
+    public boolean getState(long millis) throws InterruptedException {
+        if(millis > 0){
+            lock.tryAcquire(millis, TimeUnit.MILLISECONDS);
+        }else{
+            lock.acquire();
+        }
         lock.drainPermits();
         return state;
     }
