@@ -18,6 +18,19 @@ public class IOUtils {
         }
     }
 
+    public static void changeFileLines1(String filePath, Function<String, String> fun) throws IOException {
+        String line;
+        StringBuilder sb = new StringBuilder();
+        try (RandomAccessFile raf = new RandomAccessFile(new File(filePath), "rw")){
+            while ((line = raf.readLine())!=null){
+                sb.append(fun.apply(line)).append("\n");
+            }
+            raf.setLength(0);
+            raf.seek(0);
+            raf.write(sb.toString().getBytes());
+        }
+    }
+
     public static void changeFileLines(String filePath, Function<String, String> fun) throws IOException {
         String name = getCopyTempName(filePath);
         String line;
