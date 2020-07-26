@@ -2,6 +2,7 @@ package com.sam.demo.process1.exec;
 
 import com.sam.demo.process1.AbstractProcessor;
 import com.sam.demo.process1.Processor;
+import com.sam.demo.process1.work.Element;
 import com.sam.demo.process1.work.SimpleProductLine;
 
 import java.io.*;
@@ -12,11 +13,13 @@ public class TleProcessor extends AbstractProcessor {
 
     private RandomAccessFile raf;
     private RandomAccessFile bfr;
+    private File tle;
+    private File kepl;
 
     public TleProcessor(String exeFullName) throws IOException {
         super(exeFullName);
-        File tle = new File(home(), "TLE.txt");
-        File kepl = new File(home(), "J2000KEPL.TXT");
+        tle = new File(home(), "TLE.txt");
+        kepl = new File(home(), "J2000KEPL.TXT");
         if (!tle.exists() || tle.isDirectory()) {
             tle.delete();
             tle.createNewFile();
@@ -42,7 +45,8 @@ public class TleProcessor extends AbstractProcessor {
     }
 
     @Override
-    protected void next(String params) throws Exception {
+    protected void next(Element element) throws Exception {
+        String params = element.getParams();
         raf.setLength(0);
         raf.seek(0);
         raf.write(params.getBytes());
@@ -53,9 +57,16 @@ public class TleProcessor extends AbstractProcessor {
      * 文件指针 seek
      */
     @Override
-    protected String completed() throws Exception {
+    protected void completed(Element element) throws Exception {
         bfr.seek(0);
-        return bfr.readLine();
+        String s = bfr.readLine();
+        element.setResult(s);
+        element.setResultFiles(new File[]{kepl});
+        element.setParamsFile(tle);
+    }
+
+    @Override
+    protected void error(Element element) {
     }
 
     public void close() throws IOException, InterruptedException {
@@ -91,10 +102,13 @@ public class TleProcessor extends AbstractProcessor {
         service.execute(processor3);
         service.shutdown();
 
+        Element element;
         for (String param : params) {
-            processor1.produce(param);
-            processor2.produce(param);
-            processor3.produce(param);
+            element = new Element();
+            element.setParams(param);
+            processor1.produce(element);
+            processor2.produce(element);
+            processor3.produce(element);
         }
     }
 

@@ -2,6 +2,7 @@ package com.sam.demo.process1;
 
 import com.sam.demo.process1.console.ReaderConsole;
 import com.sam.demo.process1.console.WriterConsole;
+import com.sam.demo.process1.work.Element;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
@@ -20,7 +21,7 @@ public abstract class AbstractProcessor implements Processor {
     private final String exe;
     private final File home;
 
-    private BlockingQueue<String> queue;
+    private BlockingQueue<Element> queue;
 
     private WriterConsole writerConsole;
     private ReaderConsole readerConsole;
@@ -56,12 +57,16 @@ public abstract class AbstractProcessor implements Processor {
         queue = new LinkedBlockingQueue<>();
     }
 
-    public File home() {
+    protected File home() {
         return home;
     }
 
-    public void sign(String sign) {
+    protected void sign(String sign) {
         readerConsole.sign(sign);
+    }
+
+    protected String getReason() {
+        return readerConsole.getReason();
     }
 
     @Override
@@ -70,9 +75,9 @@ public abstract class AbstractProcessor implements Processor {
     }
 
     @Override
-    public void produce(String param) {
+    public void produce(Element element) {
         if (!this.closed) {
-            queue.add(param);
+            queue.add(element);
         }
     }
 
@@ -86,13 +91,13 @@ public abstract class AbstractProcessor implements Processor {
 
     @Override
     public void run() {
-        String params;
-        String result;
+        Element element;
         readerConsole.start();
         writerConsole.start();
         while (!this.closed) {
             try {
-                params = queue.poll(1000, TimeUnit.SECONDS);
+                element = queue.poll(1000, TimeUnit.MILLISECONDS);
+                if(element == null) continue;
             } catch (InterruptedException e) {
                 if (this.closed) {
                     log.info("处理器关闭");
@@ -101,20 +106,21 @@ public abstract class AbstractProcessor implements Processor {
                 continue;
             }
             try {
-                log.debug("写入参数 [{}]", params);
-                next(params);
+                log.info("写入参数 [{}]", element);
+                next(element);
 
                 writerConsole.exec(exe);
                 boolean state = readerConsole.getState(timeout());
-                log.debug("命令完成 [{}]", state);
+                log.info("命令完成 [{}]", state);
                 if (state) {
                     long waitTime = waitTime();
                     Thread.sleep(waitTime);
-                    result = completed();
+                    completed(element);
                 } else {
-                    result = readerConsole.getReason();
+                    error(element);
                 }
-                productLine.output(state, params, result);
+
+                productLine.output(state, element);
             } catch (Exception e) {
                 log.error("处理过程异常", e);
             }
@@ -130,8 +136,10 @@ public abstract class AbstractProcessor implements Processor {
 
     protected abstract long timeout();
 
-    protected abstract void next(String params) throws Exception;
+    protected abstract void next(Element element) throws Exception;
 
-    protected abstract String completed() throws Exception;
+    protected abstract void completed(Element element) throws Exception;
+
+    protected abstract void error(Element element) throws Exception;
 
 }

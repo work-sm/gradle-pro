@@ -128,6 +128,7 @@ public class ReaderConsole implements Closeable {
     }
 
     public String getReason() {
+        if(reason == null) return "locked err.";
         return reason.toString();
     }
 

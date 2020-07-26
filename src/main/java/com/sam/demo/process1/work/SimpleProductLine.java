@@ -6,7 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class SimpleProductLine implements ProductLine {
     @Override
-    public void output(boolean state, String params, String msg) {
-        log.info("{} {} {}",state,params,msg);
+    public void output(boolean state, Element element) {
+        log.info("{} {}", state, element);
     }
 }
