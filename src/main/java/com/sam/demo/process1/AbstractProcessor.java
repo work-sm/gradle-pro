@@ -18,6 +18,7 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public abstract class AbstractProcessor implements Processor {
 
+    private final int localNum;
     private final String exe;
     private final File home;
 
@@ -45,14 +46,16 @@ public abstract class AbstractProcessor implements Processor {
         String binHome = exeFullName.substring(0, last);
         this.home = new File(binHome);
         this.exe = exeFullName.substring(last, exeFullName.length());
+        String num = binHome.substring(binHome.length() - 6, binHome.length() - 5);
+        localNum = Integer.parseInt(num);
 
         Process process = Runtime.getRuntime().exec("cmd", null, this.home);
 
         OutputStream outputStream = process.getOutputStream();
         InputStream inputStream = process.getInputStream();
         InputStream errorStream = process.getErrorStream();
-        writerConsole = new WriterConsole(outputStream);
-        readerConsole = new ReaderConsole(inputStream, errorStream);
+        writerConsole = new WriterConsole(outputStream, exe, localNum);
+        readerConsole = new ReaderConsole(inputStream, errorStream, exe, localNum);
         lock = new Semaphore(0);
         queue = new LinkedBlockingQueue<>();
     }
@@ -61,12 +64,21 @@ public abstract class AbstractProcessor implements Processor {
         return home;
     }
 
-    protected void sign(String sign) {
-        readerConsole.sign(sign);
+    protected void completeSigns(String sign) {
+        readerConsole.completeSigns(sign);
+    }
+
+    protected void errorSigns(String sign) {
+        readerConsole.errorSigns(sign);
     }
 
     protected String getReason() {
         return readerConsole.getReason();
+    }
+
+    @Override
+    public void setFileBatch(String uuid){
+        productLine.setFileBatch(uuid);
     }
 
     @Override

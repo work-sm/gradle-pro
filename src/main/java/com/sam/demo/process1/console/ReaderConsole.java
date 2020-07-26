@@ -16,37 +16,44 @@ import java.util.stream.Stream;
 @Slf4j
 public class ReaderConsole implements Closeable {
 
+    private final String name;
+    private final Integer localNum;
+
     private CyclicBarrier inputBarrier;
     private CyclicBarrier errorBarrier;
 
     private BufferedReader inputReader;
     private BufferedReader errorReader;
-    private List<String> signs;
+    private List<String> completeSigns;
+    private List<String> errorSigns;
 
     private volatile boolean state;
     private StringBuilder reason;
     private volatile boolean closed;
     private Semaphore lock;
 
-    public ReaderConsole(InputStream input, InputStream error) {
+    public ReaderConsole(InputStream input, InputStream error, String name, Integer localNum) {
         InputStreamReader inputStream = new InputStreamReader(input, Charset.forName("GBK"));
         inputReader = new BufferedReader(inputStream);
         InputStreamReader errorStream = new InputStreamReader(error, Charset.forName("GBK"));
         errorReader = new BufferedReader(errorStream);
         this.closed = false;
-        this.signs = new ArrayList<>();
+        this.completeSigns = new ArrayList<>();
+        this.errorSigns = new ArrayList<>();
         this.lock = new Semaphore(0);
+        this.name =  name.substring(0, name.length() -4);
+        this.localNum = localNum;
         init();
     }
 
     private void init() {
         inputBarrier = new CyclicBarrier(1, () -> {
-            log.debug("命令完成");
+            log.info("命令完成");
             state = true;
             lock.release();
         });
         errorBarrier = new CyclicBarrier(1, () -> {
-            log.debug("命令异常");
+            log.info("命令异常");
             state = false;
             lock.release();
         });
@@ -57,31 +64,61 @@ public class ReaderConsole implements Closeable {
             String line;
             String sign;
             Iterator<String> iterator;
-            List<String> temps = new ArrayList<>();
+            List<String> cTemps = new ArrayList<>();
+            List<String> eTemps = new ArrayList<>();
             while (!closed) {
                 try {
-                    temps.addAll(signs);
+                    cTemps.addAll(completeSigns);
+                    eTemps.addAll(errorSigns);
                     while ((line = inputReader.readLine()) != null) {
                         log.debug("==== [{}]", line);
-                        if (signs.isEmpty()) {
-                            inputReader.lines();
-                            inputBarrier.await();
-                            continue;
+                        if (completeSigns.isEmpty() && errorSigns.isEmpty()) {
+                            if(errorSigns.isEmpty()){
+                                inputReader.lines();
+                                errorBarrier.await();
+                                continue;
+                            }else if(completeSigns.isEmpty()){
+                                inputReader.lines();
+                                inputBarrier.await();
+                                continue;
+                            }
                         }
-                        iterator = temps.iterator();
+                        iterator = cTemps.iterator();
                         while (iterator.hasNext()) {
                             sign = iterator.next();
                             if (line.contains(sign)) {
-                                log.debug("收到命令信号 [{}]", line);
+                                log.info("input 收到完成信号 {} [{}]", line, name);
                                 iterator.remove();
                             }
                         }
-                        if (temps.size() == 0) {
-                            log.debug("收到信号完整");
-                            temps.clear();
-                            temps.addAll(signs);
-                            inputReader.lines();
-                            inputBarrier.await();
+                        iterator = eTemps.iterator();
+                        while (iterator.hasNext()) {
+                            sign = iterator.next();
+                            if (line.contains(sign)) {
+                                log.info("input 收到异常信号 {} [{}]", line, name);
+                                reason = new StringBuilder();
+                                reason.append(line).append("\n");
+                                iterator.remove();
+                            }
+                        }
+                        if (cTemps.size() == 0 || eTemps.size() == 0) {
+                            if(eTemps.size() == 0){
+                                log.info("input [{}] 异常信号完整", name);
+                                cTemps.clear();
+                                cTemps.addAll(completeSigns);
+                                eTemps.clear();
+                                eTemps.addAll(errorSigns);
+                                inputReader.lines();
+                                errorBarrier.await();
+                            }else if(cTemps.size() == 0){
+                                log.info("input [{}] 完成信号完整", name);
+                                cTemps.clear();
+                                cTemps.addAll(completeSigns);
+                                eTemps.clear();
+                                eTemps.addAll(errorSigns);
+                                inputReader.lines();
+                                inputBarrier.await();
+                            }
                         }
                     }
                 } catch (IOException | InterruptedException | BrokenBarrierException e) {
@@ -101,7 +138,7 @@ public class ReaderConsole implements Closeable {
                         lines.forEach(lin -> {
                             reason.append(lin).append("\n");
                         });
-                        log.debug("收到异常信号 [{}]", reason.toString());
+                        log.info("error 收到异常信号 [{}]", reason.toString());
                         errorBarrier.await();
                     }
                 } catch (IOException | InterruptedException | BrokenBarrierException e) {
@@ -109,12 +146,18 @@ public class ReaderConsole implements Closeable {
                 }
             }
         });
+        inputSteam.setName(name + "_I_reader"+localNum);
+        errorSteam.setName(name + "_E_reader"+localNum);
         inputSteam.start();
         errorSteam.start();
     }
 
-    public void sign(String sign) {
-        signs.add(sign);
+    public void completeSigns(String sign) {
+        completeSigns.add(sign);
+    }
+
+    public void errorSigns(String sign) {
+        errorSigns.add(sign);
     }
 
     public boolean getState(long millis) throws InterruptedException {
@@ -128,7 +171,7 @@ public class ReaderConsole implements Closeable {
     }
 
     public String getReason() {
-        if(reason == null) return "locked err.";
+        if(reason == null) return "read time out err.";
         return reason.toString();
     }
 

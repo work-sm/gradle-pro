@@ -12,19 +12,23 @@ public class WriterConsole implements Closeable {
 
     private Semaphore semaphore = new Semaphore(0);
 
+    private final String name;
+    private final Integer localNum;
     private String command = "";
     private BufferedWriter bw;
 
     private volatile boolean closed;
 
-    public WriterConsole(OutputStream os) {
+    public WriterConsole(OutputStream os, String name, Integer localNum) {
         OutputStreamWriter osw = new OutputStreamWriter(os, Charset.forName("GBK"));
         bw = new BufferedWriter(osw);
         closed = false;
+        this.name = name.substring(0, name.length() -4);
+        this.localNum = localNum;
     }
 
-    public WriterConsole(OutputStream os, String runHome) throws IOException {
-        this(os);
+    public WriterConsole(OutputStream os, String runHome, String name, Integer localNum) throws IOException {
+        this(os, name, localNum);
         String drive = runHome.substring(0, 2);
         bw.write("@echo off\n");
         bw.write(drive + "\n");
@@ -38,7 +42,7 @@ public class WriterConsole implements Closeable {
                 try {
                     semaphore.acquire();
                     bw.write(command + "\n");
-                    log.debug("发出命令 [{}]", command);
+                    log.info("发出命令 [{}]", command);
                     bw.flush();
                 } catch (InterruptedException e) {
                     log.error("等待异常", e);
@@ -52,7 +56,9 @@ public class WriterConsole implements Closeable {
                 }
             }
         };
-        new Thread(runnable).start();
+        Thread thread = new Thread(runnable);
+        thread.setName(name+"_writer"+localNum);
+        thread.start();
     }
 
     public void exec(String command) {

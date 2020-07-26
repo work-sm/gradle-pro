@@ -9,4 +9,8 @@ public class SimpleProductLine implements ProductLine {
     public void output(boolean state, Element element) {
         log.info("{} {}", state, element);
     }
+
+    @Override
+    public void setFileBatch(String uuid) {
+    }
 }

@@ -29,7 +29,8 @@ public class TleProcessor extends AbstractProcessor {
             kepl.createNewFile();
         }
         // 重要参数,完成信号
-        sign("Stop - Program terminated.");
+        completeSigns("Stop - Program terminated.");
+        errorSigns("PODPS ERROR NO");
         raf = new RandomAccessFile(tle, "rw");
         bfr = new RandomAccessFile(kepl, "r");
     }

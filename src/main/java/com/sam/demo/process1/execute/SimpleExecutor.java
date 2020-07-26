@@ -9,6 +9,8 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Slf4j
 public class SimpleExecutor implements Executor {
@@ -22,26 +24,41 @@ public class SimpleExecutor implements Executor {
     }
 
     @Override
-    public void init(Integer id, Processor[] processors){
-        group.put(id, new ProcessorCarrier(processors));
+    public void init(Integer id, String name, Processor[] processors) {
+        group.put(id, new ProcessorCarrier(name, processors));
     }
 
     @Override
-    public void execute(Integer id, Element element) throws Exception {
+    public void execute(Integer id, Element element, String uuid) throws Exception {
         ProcessorCarrier processorCarrier = group.get(id);
-        processorCarrier.exec(element);
+        processorCarrier.exec(element, uuid);
     }
 
     static class ProcessorCarrier {
+        private ExecutorService service;
         private final Processor[] processors;
 
-        ProcessorCarrier(Processor[] processors) {
+        ProcessorCarrier(String name, Processor[] processors) {
             if (processors.length > limit) throw new IndexOutOfBoundsException("limit " + limit);
+            service = new ThreadPoolExecutor(processors.length, processors.length, 0L, TimeUnit.MILLISECONDS,
+                    new LinkedBlockingQueue<>(), new ThreadFactory() {
+                private final AtomicInteger poolNumber = new AtomicInteger();
+
+                @Override
+                public Thread newThread(Runnable r) {
+                    return new Thread(r, name + poolNumber.getAndIncrement());
+                }
+            }, new ThreadPoolExecutor.AbortPolicy());
             this.processors = processors;
+            for (Processor processor : processors) {
+                service.execute(processor);
+            }
+            service.shutdown();
         }
 
-        void exec(Element element) throws Exception {
+        void exec(Element element, String uuid) throws Exception {
             int i = random.nextInt(limit);
+            processors[i].setFileBatch(uuid);
             processors[i].produce(element);
         }
     }
@@ -58,14 +75,14 @@ public class SimpleExecutor implements Executor {
 
         Processor processor = new TleProcessor("C:\\Users\\Administrator\\Desktop\\runtime\\tle1\\TLE_J2000KEPL.exe");
         Executor executor = new SimpleExecutor(1);
-        executor.init(1, new Processor[]{processor});
+        executor.init(1, "", new Processor[]{processor});
 
         Element element = null;
         for (String param : params) {
             element = new Element();
             element.setParams(param);
             try {
-                executor.execute(1, element);
+                executor.execute(1, element, "");
             } catch (Exception e) {
                 e.printStackTrace();
             }
