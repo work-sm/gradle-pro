@@ -23,12 +23,21 @@ public class IOUtils {
         StringBuilder sb = new StringBuilder();
         try (RandomAccessFile raf = new RandomAccessFile(new File(filePath), "rw")){
             while ((line = raf.readLine())!=null){
-                sb.append(fun.apply(line)).append("\n");
+                byte[] bytes = getBytes(line.toCharArray());
+                sb.append(new String(bytes)).append("\n");
             }
             raf.setLength(0);
             raf.seek(0);
-            raf.write(sb.toString().getBytes());
+            raf.write(sb.toString().getBytes("UTF-8"));
         }
+    }
+
+    private static byte[] getBytes(char[] chars) {
+        byte[] result = new byte[chars.length];
+        for (int i = 0; i < chars.length; i++) {
+            result[i] = (byte) chars[i];
+        }
+        return result;
     }
 
     public static void changeFileLines(String filePath, Function<String, String> fun) throws IOException {

@@ -24,6 +24,7 @@ dependencies {
     implementation 'com.alibaba:fastjson:1.2.72'
     implementation 'com.netflix.hystrix:hystrix-core:1.5.12'
     implementation 'org.springframework:spring-context'
+    implementation 'cn.hutool:hutool-core:5.3.10'
 
     testImplementation 'junit:junit'
 }
