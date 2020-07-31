@@ -1,4 +1,4 @@
-package com.sam.demo.process1.util;
+package com.sam.demo.process.util;
 
 import java.io.IOException;
 import java.io.InputStream;

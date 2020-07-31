@@ -1,49 +1,25 @@
 package com.sam.demo.process.exec;
 
+import com.sam.demo.process.AbstractProcessor;
 import com.sam.demo.process.Processor;
-import com.sam.demo.process.console.ReaderConsole;
-import com.sam.demo.process.console.WriterConsole;
-import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
+import com.sam.demo.process.work.Element;
+import com.sam.demo.process.work.SimpleProductLine;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.concurrent.*;
+import java.io.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
-@Slf4j
-public class TleProcessor implements Processor {
+public class TleProcessor extends AbstractProcessor {
 
-    private final static String EXE = "TLE_J2000KEPL.exe";
+    private RandomAccessFile raf;
+    private RandomAccessFile bfr;
+    private File tle;
+    private File kepl;
 
-    private String binHome;
-
-    private WriterConsole writerConsole;
-    private ReaderConsole readerConsole;
-
-    private TleResult tleResult;
-    private TleParams tleParams;
-
-    private volatile boolean shutdown;
-    private Semaphore semaphore = new Semaphore(0);
-
-    private BlockingQueue<String> queue = new LinkedBlockingQueue<>();
-
-    public TleProcessor(String binHome) throws Exception {
-        this.binHome = binHome;
-        this.shutdown = false;
-        this.setup();
-    }
-
-    private void setup() throws Exception {
-        File exe = new File(binHome, EXE);
-        File tle = new File(binHome, "TLE.txt");
-        File kepl = new File(binHome, "J2000KEPL.TXT");
-        if (!exe.exists() || !exe.isFile()) {
-            log.error("TLE_J2000KEPL.exe 不存在");
-            throw new Exception("执行文件不存在");
-        }
+    public TleProcessor(String exeFullName) throws IOException {
+        super(exeFullName);
+        tle = new File(home(), "TLE.txt");
+        kepl = new File(home(), "J2000KEPL.TXT");
         if (!tle.exists() || tle.isDirectory()) {
             tle.delete();
             tle.createNewFile();
@@ -52,71 +28,89 @@ public class TleProcessor implements Processor {
             kepl.delete();
             kepl.createNewFile();
         }
-
-        Process process = Runtime.getRuntime().exec("cmd", null, new File(binHome));
-
-        OutputStream outputStream = process.getOutputStream();
-        InputStream inputStream = process.getInputStream();
-        InputStream errorStream = process.getErrorStream();
-        writerConsole = new WriterConsole(outputStream);
-        readerConsole = new ReaderConsole(inputStream, errorStream, "Stop - Program terminated.");
-
-        tleResult = new TleResult(kepl);
-        tleParams = new TleParams(tle);
+        // 重要参数,完成信号
+        completeSigns("Stop - Program terminated.");
+        errorSigns("PODPS ERROR NO");
+        raf = new RandomAccessFile(tle, "rw");
+        bfr = new RandomAccessFile(kepl, "r");
     }
 
     @Override
-    public void run() {
-        String result = null;
-        while (!this.shutdown) {
-            String params = null;
-            try {
-                params = queue.poll(1000, TimeUnit.SECONDS);
-            } catch (InterruptedException e) {
-                log.error("处理器关闭");
-                if(this.shutdown){
-                    semaphore.release();
-                }
-            }
-            try {
-                tleParams.params(params);
-                tleParams.waitFor();
-
-                writerConsole.exec(EXE);
-                boolean state = readerConsole.getState();
-                if (state) {
-                    result = tleResult.getResult();
-                }
-                log.info("===[{}]===[{}]===", params, result);
-            } catch (InterruptedException | IOException | BrokenBarrierException e) {
-                log.error("tle 处理过程异常", e);
-            }
-        }
-
-        log.error("处理器关闭");
-        if(this.shutdown){
-            semaphore.release();
-        }
+    protected long waitTime() {
+        return 0;
     }
 
     @Override
-    public boolean add(String param) {
-        if(!this.shutdown){
-            return queue.add(param);
-        }
-        return false;
+    protected long timeout() {
+        return 0;
     }
 
-    @SneakyThrows
     @Override
-    public void close() throws IOException {
-        this.shutdown = true;
-        semaphore.acquire();
-        writerConsole.close();
-        //不可靠
-        readerConsole.close();
-        // 后期优雅
-        queue.clear();
+    protected void next(Element element) throws Exception {
+        String params = element.getParams();
+        raf.setLength(0);
+        raf.seek(0);
+        raf.write(params.getBytes());
+    }
+
+    /**
+     * 只是缓存 mark reset
+     * 文件指针 seek
+     */
+    @Override
+    protected void completed(Element element) throws Exception {
+        bfr.seek(0);
+        String s = bfr.readLine();
+        element.setResult(s);
+        element.setResultFiles(new File[]{kepl});
+        element.setParamsFile(tle);
+    }
+
+    @Override
+    protected void error(Element element) {
+    }
+
+    public void close() throws IOException, InterruptedException {
+        super.close();
+        if (raf != null) {
+            raf.close();
+        }
+        if (bfr != null) {
+            bfr.close();
+        }
+    }
+
+    public static void main(String[] args) throws IOException{
+        String[] params = new String[]{
+                "1 40908U 15049K   20198.78459397  .00000322  00000-0  21304-4 0  9993\n" +
+                        "2 40908  97.4917 197.7237 0014229 282.1605 158.5111 15.14062358266436",
+                "1 00902U 64063E   20202.50348760  .00000030  00000-0  31316-4 0  9990\n" +
+                        "2 00902  90.1619  31.5795 0018818  17.0373  41.7246 13.52685257565000",
+                "1 00900U 64063C   20202.17095681  .00000187  00000-0  19107-3 0  9998\n" +
+                        "2 00900  90.1522  28.9147 0025875 322.1024 146.6777 13.73394820774941"
+        };
+
+        SimpleProductLine simpleProductLine = new SimpleProductLine();
+        ExecutorService service = Executors.newFixedThreadPool(3);
+        Processor processor1 = new TleProcessor("C:\\Users\\Administrator\\Desktop\\runtime\\tle1\\TLE_J2000KEPL.exe");
+        Processor processor2 = new TleProcessor("C:\\Users\\Administrator\\Desktop\\runtime\\tle2\\TLE_J2000KEPL.exe");
+        Processor processor3 = new TleProcessor("C:\\Users\\Administrator\\Desktop\\runtime\\tle3\\TLE_J2000KEPL.exe");
+        processor1.consume(simpleProductLine);
+        processor2.consume(simpleProductLine);
+        processor3.consume(simpleProductLine);
+        service.execute(processor1);
+        service.execute(processor2);
+        service.execute(processor3);
+        service.shutdown();
+
+        Element element;
+        for (String param : params) {
+            element = new Element();
+            element.setParams(param);
+            processor1.produce(element);
+            processor2.produce(element);
+            processor3.produce(element);
+        }
     }
 
 }

@@ -1,4 +1,4 @@
-package com.sam.demo.process1.work;
+package com.sam.demo.process.work;
 
 import lombok.Getter;
 import lombok.Setter;

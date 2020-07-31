@@ -1,4 +1,4 @@
-package com.sam.demo.process1.util;
+package com.sam.demo.process.util;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;

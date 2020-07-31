@@ -1,7 +1,9 @@
 package com.sam.demo.process;
 
-import java.io.Closeable;
+import com.sam.demo.process.work.Element;
 
-public interface Processor extends Runnable ,Closeable {
-    boolean add(String param);
+public interface Processor extends Runnable {
+    void produce(Element element);
+    void consume(ProductLine product);
+    void setFileBatch(String uuid);
 }

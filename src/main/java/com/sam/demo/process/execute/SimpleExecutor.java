@@ -1,8 +1,8 @@
-package com.sam.demo.process1.execute;
+package com.sam.demo.process.execute;
 
-import com.sam.demo.process1.Processor;
-import com.sam.demo.process1.exec.TleProcessor;
-import com.sam.demo.process1.work.Element;
+import com.sam.demo.process.Processor;
+import com.sam.demo.process.exec.TleProcessor;
+import com.sam.demo.process.work.Element;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;

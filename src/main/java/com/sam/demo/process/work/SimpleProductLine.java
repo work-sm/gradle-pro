@@ -1,6 +1,6 @@
-package com.sam.demo.process1.work;
+package com.sam.demo.process.work;
 
-import com.sam.demo.process1.ProductLine;
+import com.sam.demo.process.ProductLine;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j

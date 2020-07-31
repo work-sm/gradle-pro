@@ -1,8 +1,8 @@
-package com.sam.demo.process1;
+package com.sam.demo.process;
 
-import com.sam.demo.process1.console.ReaderConsole;
-import com.sam.demo.process1.console.WriterConsole;
-import com.sam.demo.process1.work.Element;
+import com.sam.demo.process.console.ReaderConsole;
+import com.sam.demo.process.console.WriterConsole;
+import com.sam.demo.process.work.Element;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 

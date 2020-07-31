@@ -1,4 +1,4 @@
-package com.sam.demo.process1.util;
+package com.sam.demo.process.util;
 
 import com.alibaba.fastjson.JSONPath;
 import org.apache.commons.io.IOUtils;
