@@ -11,8 +11,7 @@ public class Main {
     //Desktop.getDesktop().open
     public static void main(String[] args) throws IOException {
         Process process = new ProcessBuilder("cmd")
-                .directory(new File("C:\\Users\\Administrator\\Desktop\\software\\bin"))
-//                .redirectErrorStream(true)
+                .directory(new File("D:\\SourceCode\\runtime\\software1\\bin"))
                 .start();
         OutputStream outputStream = process.getOutputStream();
         InputStream inputStream = process.getInputStream();
@@ -23,7 +22,7 @@ public class Main {
                 try {
                     String line = null;
                     while ((line = br.readLine()) != null) {
-                        System.out.println(line);
+                        System.out.println("[in ]"+line);
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -43,7 +42,7 @@ public class Main {
                 try {
                     String line = null ;
                     while ((line = br.readLine()) !=  null ) {
-                            System.err.println(line);
+                            System.err.println("[err]"+line);
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -61,11 +60,11 @@ public class Main {
             public void  run() {
                 BufferedWriter bw = new BufferedWriter(new  OutputStreamWriter(outputStream));
                 try {
-                    while (true) {
+//                    while (true) {
                         String line = getIn();
                         bw.write(line);
                         bw.flush();
-                    }
+//                    }
                 } catch (IOException e) {
                     e.printStackTrace();
                 } finally{
@@ -80,10 +79,10 @@ public class Main {
     }
 
     private static String getIn(){
-        if (scan.hasNext()) {
-            return scan.next();
-        }
-        return "";
+//        if (scan.hasNextLine()) {
+//            return scan.nextLine();
+//        }
+        return "@echo off\norbitEleCompt\necho OK\n";
     }
 
 }
