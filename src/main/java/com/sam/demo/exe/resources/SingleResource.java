@@ -1,8 +1,10 @@
 package com.sam.demo.exe.resources;
 
+import com.sam.demo.exe.data.Carrier;
+
 import java.util.concurrent.Semaphore;
 
-public abstract class SingleResource<D> implements Resource<D> {
+public abstract class SingleResource<D extends Carrier> implements Resource<D> {
 
     private Semaphore semaphore = new Semaphore(1);
 

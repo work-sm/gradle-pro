@@ -1,6 +1,8 @@
 package com.sam.demo.exe.resources;
 
-public interface Resource<D> {
+import com.sam.demo.exe.data.Carrier;
+
+public interface Resource<D extends Carrier> {
 
     void control() throws InterruptedException;
 

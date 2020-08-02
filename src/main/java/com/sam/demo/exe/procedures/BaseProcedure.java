@@ -1,14 +1,15 @@
 package com.sam.demo.exe.procedures;
 
+import com.sam.demo.exe.data.Carrier;
 import com.sam.demo.exe.resources.Resource;
 import com.sam.demo.exe.ResourceManager;
-import com.sam.demo.exe.impl.Executor;
+import com.sam.demo.exe.resources.Executor;
 import com.sam.demo.exe.impl.Reader;
 import com.sam.demo.exe.impl.Writer;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class BaseProcedure<D> extends RunnerProcedure {
+public class BaseProcedure<D extends Carrier> extends RunnerProcedure {
 
     private ResourceManager<D> manager;
 

@@ -1,5 +1,6 @@
 package com.sam.demo.exe;
 
+import com.sam.demo.exe.data.Carrier;
 import com.sam.demo.exe.resources.Resource;
 
 import java.util.Map;
@@ -8,7 +9,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
-public class ResourceManager<D> {
+public class ResourceManager<D extends Carrier> {
 
     private Map<Class, Resource> resources = new ConcurrentHashMap<>();
 
