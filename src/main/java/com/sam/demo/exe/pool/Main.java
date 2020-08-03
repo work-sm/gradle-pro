@@ -81,9 +81,9 @@ public class Main<D extends Carrier> {
         };
 
         Main<Carrier> carrierMain = new Main<>();
-        Writer writer = new Writer("C:\\Users\\Administrator\\Desktop\\runtime1\\tle0\\bin\\TLE.txt");
-        Reader reader = new Reader("C:\\Users\\Administrator\\Desktop\\runtime1\\tle0\\bin\\J2000KEPL.TXT");
-        Executor<Carrier> executor = new Executor<>("C:\\Users\\Administrator\\Desktop\\runtime1\\tle0\\bin", "TLE_J2000KEPL.exe");
+        Writer writer = new Writer("D:\\SourceCode\\runtime\\tle1\\TLE.txt");
+        Reader reader = new Reader("D:\\SourceCode\\runtime\\tle1\\J2000KEPL.TXT");
+        Executor<Carrier> executor = new Executor<>("D:\\SourceCode\\runtime\\tle1", "TLE_J2000KEPL.exe");
         carrierMain.register(writer);
         carrierMain.register(reader);
         carrierMain.register(executor);

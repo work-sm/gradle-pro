@@ -6,7 +6,6 @@ import com.sam.demo.exe.resources.SingleResource;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
@@ -15,8 +14,9 @@ public class Writer extends SingleResource<Carrier> implements Resource<Carrier>
 
     private RandomAccessFile raf;
 
-    public Writer(String filePath) throws FileNotFoundException {
+    public Writer(String filePath) throws IOException {
         File file = new File(filePath);
+        file.createNewFile();
         raf = new RandomAccessFile(file, "rw");
     }
 

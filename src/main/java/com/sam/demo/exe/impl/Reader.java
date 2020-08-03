@@ -4,19 +4,21 @@ import com.sam.demo.exe.data.Carrier;
 import com.sam.demo.exe.resources.Resource;
 import com.sam.demo.exe.resources.SingleResource;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FileUtils;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
 @Slf4j
 public class Reader extends SingleResource<Carrier> implements Resource<Carrier> {
 
+    private File file;
     private RandomAccessFile bfr;
 
-    public Reader(String filePath) throws FileNotFoundException {
-        File file = new File(filePath);
+    public Reader(String filePath) throws IOException {
+        file = new File(filePath);
+        file.createNewFile();
         bfr = new RandomAccessFile(file, "r");
     }
 
@@ -29,6 +31,7 @@ public class Reader extends SingleResource<Carrier> implements Resource<Carrier>
             sb.append(line).append("\n");
         }
         data.setReadContent(sb.toString());
+        FileUtils.forceDeleteOnExit(file);
     }
 
     @Override
