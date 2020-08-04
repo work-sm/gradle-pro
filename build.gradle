@@ -25,6 +25,7 @@ dependencies {
     implementation 'com.netflix.hystrix:hystrix-core:1.5.12'
     implementation 'org.springframework:spring-context'
     implementation 'cn.hutool:hutool-core:5.3.10'
+    compile group: 'org.antlr', name: 'antlr4-runtime', version: '4.8'
 
     testImplementation 'org.jmockit:jmockit:1.40'
     testImplementation 'junit:junit'

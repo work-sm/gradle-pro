@@ -6,12 +6,20 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.io.PrintStream;
+
 @RunWith(JMockit.class)
 public class JMockitTest {
 
+    // @Mocked 改变类行为
+    // @Injectable 改变实例行为
     @Injectable
     private InnerClass innerClass;
 
+    @Mocked
+    private PrintStream out;
+
+    // @Tested 测试对象
     @Tested
     private OuterClass outerClass;
 
