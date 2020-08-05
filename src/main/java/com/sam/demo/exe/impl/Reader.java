@@ -1,7 +1,7 @@
 package com.sam.demo.exe.impl;
 
 import com.sam.demo.exe.data.Carrier;
-import com.sam.demo.exe.resources.Resource;
+import com.sam.demo.exe.resources.Doers;
 import com.sam.demo.exe.resources.SingleResource;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
@@ -11,7 +11,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 
 @Slf4j
-public class Reader extends SingleResource<Carrier> implements Resource<Carrier> {
+public class Reader extends SingleResource implements Doers<Carrier> {
 
     private File file;
     private RandomAccessFile bfr;
@@ -24,6 +24,7 @@ public class Reader extends SingleResource<Carrier> implements Resource<Carrier>
 
     @Override
     public void doSomething(Carrier data) throws Exception {
+        log.info("获取返回");
         bfr.seek(0);
         StringBuilder sb = new StringBuilder();
         String line;

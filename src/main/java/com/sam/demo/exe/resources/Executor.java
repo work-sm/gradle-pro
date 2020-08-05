@@ -11,7 +11,7 @@ import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
-public class Executor<D extends Carrier> extends SingleResource<D> implements Resource<D> {
+public class Executor<D extends Carrier> extends SingleResource implements Doers<D> {
 
     private volatile boolean running = false;
 
@@ -24,7 +24,7 @@ public class Executor<D extends Carrier> extends SingleResource<D> implements Re
     private BufferedWriter outputBw;
     private BufferedWriter logBw;
 
-    private String exeName;
+    private String command;
     private BlockingQueue<String> queue = new SynchronousQueue<>();
 
     private ThreadGroup threadGroup;
@@ -32,8 +32,8 @@ public class Executor<D extends Carrier> extends SingleResource<D> implements Re
     private String sign = "EXE_IS_OK";
     private Semaphore lock = new Semaphore(0);
 
-    public Executor(String path, String exeName) throws IOException {
-        this.exeName = exeName;
+    public Executor(String path, String command) throws IOException {
+        this.command = command;
         process = new ProcessBuilder("cmd")
                 .directory(new File(path))
                 .start();
@@ -97,7 +97,7 @@ public class Executor<D extends Carrier> extends SingleResource<D> implements Re
                     } catch (InterruptedException e) {
                         continue;
                     }
-                    log.info("执行命令 {}", exeName);
+                    log.info("执行命令 {}", command);
                     outputBw.write("@echo off\n");
                     outputBw.write(line);
                     outputBw.write("\necho "+sign+"\n");
@@ -128,11 +128,11 @@ public class Executor<D extends Carrier> extends SingleResource<D> implements Re
     }
 
     @Override
-    public void doSomething(Carrier data) throws Exception {
+    public void doSomething(D data) throws Exception {
         if(!running)
             throw new IllegalStateException("server is not running");
-        log.info("写入命令 {}", exeName);
-        queue.put(exeName);
+        log.info("写入命令 {}", command);
+        queue.put(command);
         lock.acquire();
     }
 

@@ -21,8 +21,8 @@ public class ResourceManager<D extends Carrier> {
         }
     }
 
-    public Resource<D> takeResource(Class tClass) throws InterruptedException {
-        Resource<D> resource = resources.get(tClass);
+    public Resource takeResource(Class tClass) throws InterruptedException {
+        Resource resource = resources.get(tClass);
         resource.control();
         return resource;
     }
