@@ -2,6 +2,7 @@ package com.sam.demo.exe.impl;
 
 import com.sam.demo.exe.data.Carrier;
 import com.sam.demo.exe.pool.WorkPool;
+import com.sam.demo.exe.resources.impl.SleepWaitProcedure;
 import com.sam.demo.exe.resources.Executor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -23,12 +24,11 @@ public class Main {
 
         Writer writer = new Writer("C:\\runtime\\tle0\\bin\\TLE.txt");
         Reader reader = new Reader("C:\\runtime\\tle0\\bin\\J2000KEPL.TXT");
-        Executor<Carrier> executor = new Executor<>("C:\\runtime\\tle0\\bin", "TLE_J2000KEPL.exe");
+        Executor<Carrier> executor = new SleepWaitProcedure<>("C:\\runtime\\tle0\\bin", "TLE_J2000KEPL.exe", 1000);
         carrierWorkPool.register(writer);
         carrierWorkPool.register(reader);
         carrierWorkPool.register(executor);
         carrierWorkPool.start();
-
 
         //运行
         for (String param : params) {

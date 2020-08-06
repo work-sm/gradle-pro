@@ -1,6 +1,7 @@
-package com.sam.demo.exe.procedures;
+package com.sam.demo.exe.procedures.impl;
 
 import com.sam.demo.exe.data.Carrier;
+import com.sam.demo.exe.procedures.RunnerProcedure;
 import com.sam.demo.exe.resources.Doers;
 import com.sam.demo.exe.resources.Resource;
 import com.sam.demo.exe.ResourceManager;
@@ -10,7 +11,7 @@ import com.sam.demo.exe.impl.Writer;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public abstract class BaseProcedure<D extends Carrier> extends RunnerProcedure {
+public class BaseProcedure<D extends Carrier> extends RunnerProcedure {
 
     private ResourceManager<D> manager;
 
@@ -30,19 +31,17 @@ public abstract class BaseProcedure<D extends Carrier> extends RunnerProcedure {
             }
             log.info("获得资源 {}", data);
 
-            Resource writer = manager.takeResource(Writer.class);
+            Resource writer = manager.takeResource(Writer.class.getSimpleName());
             ((Doers)writer).doSomething(data);
             log.info("writer完毕，可执行");
 
-            Resource executor = manager.takeResource(Executor.class);
+            Resource executor = manager.takeResource(Executor.class.getSimpleName());
             ((Doers)executor).doSomething(data);
-            // 收到信号，并未刷新返回文件
-            strategy();
 
             log.info("执行完毕，释放writer");
             writer.release();
 
-            Resource reader = manager.takeResource(Reader.class);
+            Resource reader = manager.takeResource(Reader.class.getSimpleName());
             ((Doers)reader).doSomething(data);
             reader.release();
 
@@ -53,8 +52,6 @@ public abstract class BaseProcedure<D extends Carrier> extends RunnerProcedure {
             log.error("异常处理 ", e);
         }
     }
-
-    protected abstract void strategy() throws Exception;
 
     @Override
     public void destroy() {

@@ -1,6 +1,7 @@
 package com.sam.demo.exe;
 
 import com.sam.demo.exe.data.Carrier;
+import com.sam.demo.exe.resources.Doers;
 import com.sam.demo.exe.resources.Resource;
 
 import java.util.Map;
@@ -11,18 +12,19 @@ import java.util.concurrent.TimeUnit;
 
 public class ResourceManager<D extends Carrier> {
 
-    private Map<Class, Resource> resources = new ConcurrentHashMap<>();
+    private Map<String, Resource> resources = new ConcurrentHashMap<>();
 
     private BlockingQueue<D> queue = new LinkedBlockingQueue<>();
 
-    public void register(Class tClass, Resource resource) {
-        if(resource.getClass().isAssignableFrom(tClass)){
-            resources.put(tClass, resource);
+    public void register(Resource resource) {
+        if(Doers.class.isAssignableFrom(resource.getClass())){
+            String name = ((Doers) resource).name();
+            resources.put(name, resource);
         }
     }
 
-    public Resource takeResource(Class tClass) throws InterruptedException {
-        Resource resource = resources.get(tClass);
+    public Resource takeResource(String name) throws InterruptedException {
+        Resource resource = resources.get(name);
         resource.control();
         return resource;
     }
@@ -31,8 +33,8 @@ public class ResourceManager<D extends Carrier> {
         return queue.poll(1000, TimeUnit.MILLISECONDS);
     }
 
-    public Resource releaseResource(Class tClass) {
-        Resource resource = resources.get(tClass);
+    public Resource releaseResource(String name) {
+        Resource resource = resources.get(name);
         resource.release();
         return resource;
     }

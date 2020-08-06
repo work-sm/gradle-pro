@@ -2,9 +2,8 @@ package com.sam.demo.exe.pool;
 
 import com.sam.demo.exe.ResourceManager;
 import com.sam.demo.exe.data.Carrier;
-import com.sam.demo.exe.procedures.BaseProcedure;
+import com.sam.demo.exe.procedures.impl.BaseProcedure;
 import com.sam.demo.exe.procedures.Procedure;
-import com.sam.demo.exe.procedures.SleepWaitProcedure;
 import com.sam.demo.exe.resources.Resource;
 
 import java.util.concurrent.ExecutorService;
@@ -32,14 +31,14 @@ public class WorkPool<D extends Carrier> {
         if (running)
             throw new IllegalStateException("server is running");
 
-        resourceManager.register(resource.getClass(), resource);
+        resourceManager.register(resource);
     }
 
     public void start() {
         running = true;
         BaseProcedure<D> baseProcedure;
         for (int i = 0; i < procedures.length; i++) {
-            baseProcedure = new SleepWaitProcedure<>(1000);
+            baseProcedure = new BaseProcedure<>();
             baseProcedure.setManager(resourceManager);
             procedures[i] = baseProcedure;
             pool.execute(baseProcedure);

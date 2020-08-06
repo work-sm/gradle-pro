@@ -23,6 +23,11 @@ public class Reader extends SingleResource implements Doers<Carrier> {
     }
 
     @Override
+    public String name() {
+        return Reader.class.getSimpleName();
+    }
+
+    @Override
     public void doSomething(Carrier data) throws Exception {
         log.info("获取返回");
         bfr.seek(0);

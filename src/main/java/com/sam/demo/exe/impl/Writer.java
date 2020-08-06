@@ -21,6 +21,11 @@ public class Writer extends SingleResource implements Doers<Carrier> {
     }
 
     @Override
+    public String name() {
+        return Writer.class.getSimpleName();
+    }
+
+    @Override
     public void doSomething(Carrier data) throws Exception {
         log.info("刷新参数");
         raf.setLength(0);

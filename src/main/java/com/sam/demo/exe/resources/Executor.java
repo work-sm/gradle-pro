@@ -11,7 +11,7 @@ import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
-public class Executor<D extends Carrier> extends SingleResource implements Doers<D> {
+public abstract class Executor<D extends Carrier> extends SingleResource implements Doers<D> {
 
     private volatile boolean running = false;
 
@@ -128,13 +128,22 @@ public class Executor<D extends Carrier> extends SingleResource implements Doers
     }
 
     @Override
+    public String name() {
+        return Executor.class.getSimpleName();
+    }
+
+    @Override
     public void doSomething(D data) throws Exception {
         if(!running)
             throw new IllegalStateException("server is not running");
         log.info("写入命令 {}", command);
         queue.put(command);
         lock.acquire();
+        // 收到信号，并未刷新返回文件
+        strategy();
     }
+
+    protected abstract void strategy() throws Exception;
 
     @Override
     public void close() {
