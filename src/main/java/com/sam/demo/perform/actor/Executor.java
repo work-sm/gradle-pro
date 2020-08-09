@@ -1,6 +1,6 @@
-package com.sam.demo.exe.resources;
+package com.sam.demo.perform.actor;
 
-import com.sam.demo.exe.data.Carrier;
+import com.sam.demo.perform.script.Story;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.*;
@@ -11,7 +11,9 @@ import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
-public abstract class Executor<D extends Carrier> extends SingleResource implements Doers<D> {
+public abstract class Executor extends SingleActor {
+
+    private final String name;
 
     private volatile boolean running = false;
 
@@ -22,9 +24,7 @@ public abstract class Executor<D extends Carrier> extends SingleResource impleme
     private BufferedReader inputBr;
     private BufferedReader errorBr;
     private BufferedWriter outputBw;
-    private BufferedWriter logBw;
 
-    private String command;
     private BlockingQueue<String> queue = new SynchronousQueue<>();
 
     private ThreadGroup threadGroup;
@@ -32,8 +32,8 @@ public abstract class Executor<D extends Carrier> extends SingleResource impleme
     private String sign = "EXE_IS_OK";
     private Semaphore lock = new Semaphore(0);
 
-    public Executor(String path, String command) throws IOException {
-        this.command = command;
+    public Executor(String path, String name) throws IOException {
+        this.name = name;
         process = new ProcessBuilder("cmd")
                 .directory(new File(path))
                 .start();
@@ -43,7 +43,6 @@ public abstract class Executor<D extends Carrier> extends SingleResource impleme
         inputBr = new BufferedReader(new InputStreamReader(inputStream, Charset.forName("GBK")));
         errorBr = new BufferedReader(new InputStreamReader(errorStream, Charset.forName("GBK")));
         outputBw = new BufferedWriter(new OutputStreamWriter(outputStream));
-        logBw = new BufferedWriter(new FileWriter(new File(path, "log.txt"), true));
         init();
     }
 
@@ -52,20 +51,13 @@ public abstract class Executor<D extends Carrier> extends SingleResource impleme
             String line;
             try {
                 while ((line = inputBr.readLine()) != null) {
-                    if(line.contains(sign)){
+                    if (line.contains(sign)) {
                         lock.release();
+                        log.error("命令完成 [{}]", line);
                     }
-                    logBw.write("[in ] " + line);
-                    logBw.write("\n");
                 }
             } catch (IOException e) {
-                log.error("input stream dead", e);
-                try {
-                    logBw.write("[ERR] INPUT STREAM DEAD");
-                    logBw.write("\n");
-                } catch (IOException e1) {
-                    e1.printStackTrace();
-                }
+                log.error(name + " input stream dead", e);
             }
         };
 
@@ -73,17 +65,10 @@ public abstract class Executor<D extends Carrier> extends SingleResource impleme
             String line;
             try {
                 while ((line = errorBr.readLine()) != null) {
-                    logBw.write("[err] " + line);
-                    logBw.write("\n");
+                    log.error("错误命令 [{}]", line);
                 }
             } catch (IOException e) {
-                log.error("error stream dead", e);
-                try {
-                    logBw.write("[ERR] ERROR STREAM DEAD");
-                    logBw.write("\n");
-                } catch (IOException e1) {
-                    e1.printStackTrace();
-                }
+                log.error(name + " error stream dead", e);
             }
         };
 
@@ -93,35 +78,27 @@ public abstract class Executor<D extends Carrier> extends SingleResource impleme
                 while (running) {
                     try {
                         line = queue.poll(1000, TimeUnit.MILLISECONDS);
-                        if(line == null) continue;
+                        if (line == null) continue;
                     } catch (InterruptedException e) {
                         continue;
                     }
-                    log.info("执行命令 {}", command);
-                    outputBw.write("@echo off\n");
-                    outputBw.write(line);
-                    outputBw.write("\necho "+sign+"\n");
+                    log.info("执行命令 {}", line);
+                    outputBw.write("@echo off\n" + line + "\necho " + sign + "\n");
                     outputBw.flush();
                 }
             } catch (IOException e) {
-                log.error("output stream dead", e);
-                try {
-                    logBw.write("[ERR] OUTPUT STREAM DEAD");
-                    logBw.write("\n");
-                } catch (IOException e1) {
-                    e1.printStackTrace();
-                }
+                log.error(name + " output stream dead", e);
             }
         };
 
         running = true;
-        threadGroup = new ThreadGroup("process_stream");
+        threadGroup = new ThreadGroup(name + "stream_group");
         Thread thread1 = new Thread(threadGroup, inputThread);
-        thread1.setName("input_stream");
+        thread1.setName(name + "_input_stream");
         Thread thread2 = new Thread(threadGroup, errorThread);
-        thread2.setName("error_stream");
+        thread2.setName(name + "_error_stream");
         Thread thread3 = new Thread(threadGroup, outputThread);
-        thread3.setName("output_stream");
+        thread3.setName(name + "_output_stream");
         thread1.start();
         thread2.start();
         thread3.start();
@@ -129,15 +106,14 @@ public abstract class Executor<D extends Carrier> extends SingleResource impleme
 
     @Override
     public String name() {
-        return Executor.class.getSimpleName();
+        return this.name;
     }
 
     @Override
-    public void doSomething(D data) throws Exception {
+    public void visit(Story story) throws Exception {
         if(!running)
             throw new IllegalStateException("server is not running");
-        log.info("写入命令 {}", command);
-        queue.put(command);
+        queue.put(name);
         lock.acquire();
         // 收到信号，并未刷新返回文件
         strategy();
@@ -146,38 +122,19 @@ public abstract class Executor<D extends Carrier> extends SingleResource impleme
     protected abstract void strategy() throws Exception;
 
     @Override
-    public void close() {
+    public void close() throws Exception {
         running = false;
-        if(outputStream != null){
-            try {
-                outputStream.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-        if(errorStream != null){
-            try {
-                errorStream.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-        if(inputStream != null){
-            try {
-                inputStream.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
         process.destroy();
-        if(logBw!= null){
-            try {
-                logBw.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
         threadGroup.interrupt();
+        if (outputStream != null) {
+            outputStream.close();
+        }
+        if (errorStream != null) {
+            errorStream.close();
+        }
+        if (inputStream != null) {
+            inputStream.close();
+        }
     }
 
 }

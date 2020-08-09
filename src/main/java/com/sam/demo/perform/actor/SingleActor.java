@@ -1,18 +1,18 @@
-package com.sam.demo.exe.resources;
+package com.sam.demo.perform.actor;
 
 import java.util.concurrent.Semaphore;
 
-public abstract class SingleResource implements Resource {
+public abstract class SingleActor implements Actor {
 
     private Semaphore semaphore = new Semaphore(1);
 
     @Override
-    public void control() throws InterruptedException {
+    public void invite() throws Exception {
         semaphore.acquire();
     }
 
     @Override
-    public void release() {
+    public void release() throws Exception {
         semaphore.release();
     }
 
