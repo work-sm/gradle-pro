@@ -2,6 +2,7 @@ package com.sam.demo.perform.scene;
 
 import com.sam.demo.perform.actor.Action;
 import com.sam.demo.perform.actor.Actor;
+import com.sam.demo.perform.clock.Clock;
 import com.sam.demo.perform.script.Order;
 import com.sam.demo.perform.script.Story;
 import lombok.extern.slf4j.Slf4j;
@@ -27,8 +28,11 @@ public class RunnerScene implements Scene {
 
     private Semaphore lock = new Semaphore(0);
 
-    public RunnerScene(String name) {
+    private final Clock clock;
+
+    public RunnerScene(String name, Clock clock) {
         this.name = name;
+        this.clock = clock;
     }
 
     @Override
@@ -61,6 +65,7 @@ public class RunnerScene implements Scene {
     protected void process(Story story) throws Exception {
         List<Order> stage = story.getStage();
         for (Order step : stage) {
+            story.stepping();
             Action action = step.getAction();
             String actor = step.getActor();
             if (Action.RELEASE == action) {

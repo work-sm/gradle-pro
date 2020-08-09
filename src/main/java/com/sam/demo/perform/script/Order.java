@@ -13,4 +13,5 @@ import lombok.ToString;
 public class Order {
     private String actor;
     private Action action;
+    private String desc;
 }

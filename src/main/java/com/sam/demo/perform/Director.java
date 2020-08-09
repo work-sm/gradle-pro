@@ -1,6 +1,7 @@
 package com.sam.demo.perform;
 
 import com.sam.demo.perform.actor.Actor;
+import com.sam.demo.perform.clock.Clock;
 import com.sam.demo.perform.scene.RunnerScene;
 import com.sam.demo.perform.scene.Scene;
 import com.sam.demo.perform.script.Order;
@@ -18,11 +19,14 @@ public class Director {
 
     private final Map<String, Scene> sceneTable = new ConcurrentHashMap<>();
 
-    public Director(int nThreads) {
+    private final Clock clock;
+
+    public Director(int nThreads, Clock clock) {
         this.pool = new ThreadPoolExecutor(nThreads, nThreads,
                 0L, TimeUnit.MILLISECONDS,
                 new LinkedBlockingQueue<>(),
                 new NamedThreadFactory());
+        this.clock = clock;
     }
 
     public void register(Actor actor){
@@ -36,7 +40,7 @@ public class Director {
         if(StringUtils.isNotEmpty(sceneName) && sceneTable.containsKey(sceneName)){
             sceneTable.get(sceneName).story(story);
         }else{
-            Scene scene = new RunnerScene(sceneName);
+            Scene scene = new RunnerScene(sceneName, clock);
             scene.actors(actorTable);
             scene.story(story);
             sceneTable.put(sceneName, scene);

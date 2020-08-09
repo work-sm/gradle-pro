@@ -9,7 +9,7 @@ class NamedThreadFactory implements ThreadFactory {
 
     @Override
     public Thread newThread(Runnable r) {
-        return new Thread(r, "scene" + poolNumber.getAndIncrement());
+        return new Thread(r, "new" + poolNumber.getAndIncrement());
     }
 
 }

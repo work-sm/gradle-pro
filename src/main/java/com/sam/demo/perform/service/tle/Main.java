@@ -1,9 +1,11 @@
-package com.sam.demo.perform.tle;
+package com.sam.demo.perform.service.tle;
 
 import com.sam.demo.perform.Director;
 import com.sam.demo.perform.actor.Action;
 import com.sam.demo.perform.actor.Actor;
 import com.sam.demo.perform.actor.impl.SleepWaitExecutor;
+import com.sam.demo.perform.clock.Clock;
+import com.sam.demo.perform.clock.SimpleClock;
 
 import java.util.UUID;
 
@@ -18,11 +20,12 @@ public class Main {
                         "2 00900  90.1522  28.9147 0025875 322.1024 146.6777 13.73394820774941"
         };
 
+        Clock clock = new SimpleClock();
         // pc 唯一
         Actor exe = new SleepWaitExecutor("D:\\SourceCode\\runtime\\tle1", "TLE_J2000KEPL");
         Actor reader = new Reader("D:\\SourceCode\\runtime\\tle1\\J2000KEPL.TXT", "reader");
         Actor writer = new Writer("D:\\SourceCode\\runtime\\tle1\\TLE.txt", "writer");
-        Director director = new Director(1);
+        Director director = new Director(1, clock);
         director.register(exe);
         director.register(reader);
         director.register(writer);
@@ -32,10 +35,10 @@ public class Main {
             story.setParam(param);
             story.setScene("tle");
             story.setUnique(UUID.randomUUID().toString());
-            story.write("writer", Action.INVITE);
-            story.write("TLE_J2000KEPL", Action.INVITE);
+            story.write("writer", Action.INVITE, "写参数");
+            story.write("TLE_J2000KEPL", Action.INVITE, "执行脚本");
             story.write("writer", Action.RELEASE);
-            story.write("reader", Action.INVITE);
+            story.write("reader", Action.INVITE, "读返回");
             story.write("reader", Action.RELEASE);
             story.write("TLE_J2000KEPL", Action.RELEASE);
             director.work(story);

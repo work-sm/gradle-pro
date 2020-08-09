@@ -1,4 +1,4 @@
-package com.sam.demo.perform.tle;
+package com.sam.demo.perform.service.orbit;
 
 import com.sam.demo.perform.script.Story;
 import lombok.Getter;
@@ -8,7 +8,6 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
-public class TleStory extends Story {
-    private String param;
-    private String result;
+public class OrbitStory extends Story {
+    
 }
