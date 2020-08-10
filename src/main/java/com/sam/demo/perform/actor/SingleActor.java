@@ -12,7 +12,7 @@ public abstract class SingleActor implements Actor {
     }
 
     @Override
-    public void release() throws Exception {
+    public void release() {
         semaphore.release();
     }
 

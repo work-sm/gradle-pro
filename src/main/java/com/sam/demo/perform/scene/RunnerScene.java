@@ -7,9 +7,7 @@ import com.sam.demo.perform.script.Order;
 import com.sam.demo.perform.script.Story;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.Semaphore;
@@ -73,9 +71,36 @@ public class RunnerScene implements Scene {
                 actorTable.get(actor).release();
             } else if (Action.INVITE == action) {
                 log.info("actor [{}] INVITE", actor);
-                actorTable.get(actor).invite();
-                story.accept(actorTable.get(actor));
+                try {
+                    actorTable.get(actor).invite();
+                    story.accept(actorTable.get(actor));
+                } catch (Exception e) {
+                    // 异常打断了循环体，手动释放,非优雅处理
+                    releaseAll(stage, step);
+                    clock.clock(story, "指令异常");
+                    throw e;
+                }
             }
+            clock.clock(story);
+        }
+    }
+
+    private void releaseAll(List<Order> stage, Order step) {
+        int i = stage.indexOf(step);
+        Set<String> locks = new HashSet<>();
+        for (; i > -1; i--) {
+            Order order = stage.get(i);
+            Action action = order.getAction();
+            String actor = order.getActor();
+            if(Action.INVITE == action){
+                locks.add(actor);
+            }else if (Action.RELEASE == action) {
+                locks.remove(actor);
+            }
+        }
+        for(String lock:locks){
+            log.info("异常释放 {}", lock);
+            actorTable.get(lock).release();
         }
     }
 

@@ -25,6 +25,8 @@ public abstract class Executor extends SingleActor {
     private BufferedReader errorBr;
     private BufferedWriter outputBw;
 
+    private CommandHandler handler = new NopHandler();
+
     private BlockingQueue<String> queue = new SynchronousQueue<>();
 
     private ThreadGroup threadGroup;
@@ -53,7 +55,7 @@ public abstract class Executor extends SingleActor {
                 while ((line = inputBr.readLine()) != null) {
                     if (line.contains(sign)) {
                         lock.release();
-                        log.error("命令完成 [{}]", line);
+                        log.info("命令完成 [{}]", line);
                     }
                 }
             } catch (IOException e) {
@@ -83,6 +85,7 @@ public abstract class Executor extends SingleActor {
                         continue;
                     }
                     log.info("执行命令 {}", line);
+                    line = handler.handle(line);
                     outputBw.write("@echo off\n" + line + "\necho " + sign + "\n");
                     outputBw.flush();
                 }
@@ -107,6 +110,10 @@ public abstract class Executor extends SingleActor {
     @Override
     public String name() {
         return this.name;
+    }
+
+    public void setHandler(CommandHandler handler){
+        this.handler = handler;
     }
 
     @Override

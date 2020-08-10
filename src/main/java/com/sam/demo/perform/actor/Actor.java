@@ -10,7 +10,7 @@ public interface Actor {
 
     void invite() throws Exception;
 
-    void release() throws Exception;
+    void release();
 
     void close() throws Exception;
 
