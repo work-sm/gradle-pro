@@ -4,11 +4,20 @@ plugins {
     id 'java'
 }
 
+apply from: "$projectDir.path/script/test.gradle"
+
 group 'com.sam'
 version '1.0-SNAPSHOT'
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 [compileJava,compileTestJava]*.options*.encoding ='UTF-8'
+
+jar {
+    manifest {
+        attributes 'Implementation-Title': 'Gradle Quickstart',
+                'Implementation-Version': version
+    }
+}
 
 repositories {
     maven {url 'https://maven.aliyun.com/repository/public/'}

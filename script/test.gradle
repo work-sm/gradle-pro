@@ -1,0 +1,20 @@
+println "hello"
+
+ext {
+    rets = test()
+    println rets
+}
+
+String test() {
+    def stdout = new ByteArrayOutputStream()
+    try {
+        exec {
+            commandLine 'ping 127.0.0.1'
+            standardOutput = stdout
+        }
+        return stdout.toString().replace('\n', '')
+    } catch (Exception e) {
+        logger.error(e.message)
+    }
+    return ""
+}
