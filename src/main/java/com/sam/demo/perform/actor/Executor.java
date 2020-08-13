@@ -1,5 +1,7 @@
 package com.sam.demo.perform.actor;
 
+import com.sam.demo.perform.actor.handler.CommandHandler;
+import com.sam.demo.perform.actor.handler.NopHandler;
 import com.sam.demo.perform.script.Story;
 import lombok.extern.slf4j.Slf4j;
 
@@ -53,6 +55,7 @@ public abstract class Executor extends SingleActor {
             String line;
             try {
                 while ((line = inputBr.readLine()) != null) {
+                    log.info("命令回显 [{}]", line);
                     if (line.contains(sign)) {
                         lock.release();
                         log.info("命令完成 [{}]", line);
@@ -86,6 +89,7 @@ public abstract class Executor extends SingleActor {
                     }
                     log.info("执行命令 {}", line);
                     line = handler.handle(line);
+                    log.info("执行命令配参 {}", line);
                     outputBw.write("@echo off\n" + line + "\necho " + sign + "\n");
                     outputBw.flush();
                 }

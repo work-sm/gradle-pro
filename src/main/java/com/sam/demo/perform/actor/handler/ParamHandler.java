@@ -1,4 +1,4 @@
-package com.hlht.mgt.perform.actor.handler;
+package com.sam.demo.perform.actor.handler;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,6 +11,7 @@ public class ParamHandler implements CommandHandler {
     public String handle(String command) {
         StringBuilder stringBuilder = new StringBuilder(command);
 
+        stringBuilder.append(" ");
         for (String param: params){
             stringBuilder.append(param).append(" ");
         }

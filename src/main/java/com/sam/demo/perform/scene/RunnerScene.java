@@ -66,6 +66,7 @@ public class RunnerScene implements Scene {
             story.stepping();
             Action action = step.getAction();
             String actor = step.getActor();
+            clock.clock(story);
             if (Action.RELEASE == action) {
                 log.info("actor [{}] RELEASE", actor);
                 actorTable.get(actor).release();
@@ -81,7 +82,6 @@ public class RunnerScene implements Scene {
                     throw e;
                 }
             }
-            clock.clock(story);
         }
     }
 
