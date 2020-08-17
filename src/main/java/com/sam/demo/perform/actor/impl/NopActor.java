@@ -4,8 +4,6 @@ import com.sam.demo.perform.script.Story;
 import com.sam.demo.perform.actor.SingleActor;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.IOException;
-
 @Slf4j
 public class NopActor extends SingleActor {
 

@@ -12,6 +12,16 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * @author masx
+ *
+ * <p> 所有调用exe 的过程都实现自这个基类
+ * <p> 唯一需要实现的是某些exe虽然结束，其实后台还在做一些操作，我们需要一个等待填充这个时间
+ *
+ * @see com.sam.demo.perform.actor.impl.SleepWaitExecutor#strategy()
+ *
+ * <p> 此类内部实现就是一个 {@link java.lang.Process} 实现
+ */
 @Slf4j
 public abstract class Executor extends SingleActor {
 
@@ -101,11 +111,11 @@ public abstract class Executor extends SingleActor {
         running = true;
         threadGroup = new ThreadGroup(name + "stream_group");
         Thread thread1 = new Thread(threadGroup, inputThread);
-        thread1.setName(name + "_input_stream");
+        thread1.setName(name + "_in");
         Thread thread2 = new Thread(threadGroup, errorThread);
-        thread2.setName(name + "_error_stream");
+        thread2.setName(name + "_err");
         Thread thread3 = new Thread(threadGroup, outputThread);
-        thread3.setName(name + "_output_stream");
+        thread3.setName(name + "_out");
         thread1.start();
         thread2.start();
         thread3.start();
