@@ -22,9 +22,9 @@ public class Main {
 
         Clock clock = new SimpleClock();
         // pc 唯一
-        Actor exe = new SleepWaitExecutor("D:\\SourceCode\\runtime\\tle1", "TLE_J2000KEPL");
-        Actor reader = new Reader("D:\\SourceCode\\runtime\\tle1\\J2000KEPL.TXT", "reader");
-        Actor writer = new Writer("D:\\SourceCode\\runtime\\tle1\\TLE.txt", "writer");
+        Actor exe = new SleepWaitExecutor("C:\\runtime\\tle0\\bin", "TLE_J2000KEPL");
+        Actor reader = new Reader("C:\\runtime\\tle0\\bin\\J2000KEPL.TXT", "reader");
+        Actor writer = new Writer("C:\\runtime\\tle0\\bin\\TLE.txt", "writer");
         Director director = new Director(1, clock);
         director.register(exe);
         director.register(reader);

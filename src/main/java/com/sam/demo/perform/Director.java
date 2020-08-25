@@ -94,6 +94,9 @@ public class Director {
             scene.destroy();
         }
         pool.shutdown();
+        while (!pool.awaitTermination(1000, TimeUnit.MILLISECONDS)){
+            log.info("destroy...");
+        }
     }
 
 }

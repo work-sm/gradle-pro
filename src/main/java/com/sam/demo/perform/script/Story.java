@@ -26,6 +26,7 @@ public class Story implements Script{
 
     private String unique;
     private String scene;
+    private boolean state = true;
     private LinkedList<Order> stage = new LinkedList<>();
     private AtomicInteger total = new AtomicInteger();
     private AtomicInteger index = new AtomicInteger();
