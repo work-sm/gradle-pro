@@ -7,6 +7,7 @@ import com.sam.demo.perform.scene.impl.OnceScene;
 import com.sam.demo.perform.scene.impl.RunnerScene;
 import com.sam.demo.perform.script.Order;
 import com.sam.demo.perform.script.Story;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
@@ -25,6 +26,7 @@ import java.util.concurrent.*;
  *
  * <p> 具体可参考 tle的调用 {@link com.sam.demo.perform.service.tle.Main}
  */
+@Slf4j
 public class Director {
 
     private final ThreadPoolExecutor pool;
