@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="/static/bootstrap/css/bootstrap.min.css">
+
+</head>
+<body>
+<div class="d-flex flex-row bg-secondary">
+    <div class="p-2">
+        <div th:each="name,index : ${tables}">
+            <a th:text="${name}" th:onclick="'getCells(\''+${name}+'\')'"></a>
+        </div>
+    </div>
+    <div class="p-2">
+        <table class="table table-bordered table-sm">
+            <thead id="head">
+                <tr>
+                    <th>rowKey</th>
+                    <th>family</th>
+                    <th>qualifier</th>
+                    <th>value</th>
+                    <th>tags</th>
+                </tr>
+            </thead>
+            <tbody id="table">
+
+            </tbody>
+        </table>
+    </div>
+</div>
+<div class="modal fade" id="loadingModal">
+　　<div style="width: 200px;height:20px; z-index: 20000; position: absolute; text-align: center; left: 50%; top: 50%;margin-left:-100px;margin-top:-10px">
+　　　　<div class="progress" style="margin-bottom: 0;">
+　　　　　　<div class="progress-bar progress-bar-striped progress-bar-animated" style="width: 100%;"></div>
+　　　　</div>
+　　　　<h5 id="loadText">loading...</h5>
+　　</div>
+</div>
+<script>
+    function getCells(name) {
+        // console.log('show');
+        // $('#loadingModal').modal('show');
+        $.ajax({
+            url: "/table/" + name,
+            type: "GET",
+            async: true,
+            success: function(result,status,xhr) {
+                $("#table").empty();
+                result.forEach(function (item) {
+                    var length = item.cells.length;
+                    var rowKey = "<td rowspan="+length+">" + item.rowKey + "<br/>" +
+                        "<a href='/del/" + name + "/"+ item.rowKey +"'>删除</a></td>";
+                    var isKey = true;
+                    item.cells.forEach(function (cell) {
+                        var family = "<td>" + cell.family + "</td>";
+                        var qualifier = "<td>" + cell.qualifier + "</td>";
+                        var value = "<td>" + cell.value + "</td>";
+                        var tags = "<td>" + cell.tags + "</td>";
+                        if(isKey){
+                            var tr = $("<tr></tr>").append(rowKey, family, qualifier, value, tags);
+                            $("#table").append(tr);
+                            isKey = false;
+                        }else{
+                            var tr = $("<tr></tr>").append(family, qualifier, value, tags);
+                            $("#table").append(tr);
+                        }
+                    });
+                });
+            },
+            error: function(xhr,status,error) {
+                alert("状态: " + status);
+                console.log('hide');
+                $('#loadingModal').modal('hide');
+            },
+            complete: function(xhr,status){
+                console.log('hide');
+                $('#loadingModal').modal('hide');
+            }
+        })
+    }
+</script>
+<script src="/static/jquery/jquery-3.2.0.min.js"></script>
+<script src="/static/bootstrap/js/bootstrap.min.js"></script>
+</body>
+</html>
