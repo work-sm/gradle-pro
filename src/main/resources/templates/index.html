@@ -5,10 +5,9 @@
     <title>Title</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="/static/bootstrap/css/bootstrap.min.css">
-
 </head>
 <body>
-<div class="d-flex flex-row bg-secondary">
+<div class="d-flex flex-row">
     <div class="p-2">
         <div th:each="name,index : ${tables}">
             <a th:text="${name}" th:onclick="'getCells(\''+${name}+'\')'"></a>
@@ -23,6 +22,7 @@
                     <th>qualifier</th>
                     <th>value</th>
                     <th>tags</th>
+                    <th>操作</th>
                 </tr>
             </thead>
             <tbody id="table">
@@ -31,18 +31,40 @@
         </table>
     </div>
 </div>
-<div class="modal fade" id="loadingModal">
-　　<div style="width: 200px;height:20px; z-index: 20000; position: absolute; text-align: center; left: 50%; top: 50%;margin-left:-100px;margin-top:-10px">
-　　　　<div class="progress" style="margin-bottom: 0;">
-　　　　　　<div class="progress-bar progress-bar-striped progress-bar-animated" style="width: 100%;"></div>
-　　　　</div>
-　　　　<h5 id="loadText">loading...</h5>
-　　</div>
+<div class="modal fade" id="myModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Save</h4>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+
+            <div class="modal-body">
+                <form>
+                    <div class="form-inline">
+                        <label for="email">Email address:</label>
+                        <input type="email" class="form-control" id="email">
+                    </div>
+                    <div class="form-inline">
+                        <label for="pwd">Password:</label>
+                        <input type="password" class="form-control" id="pwd">
+                    </div>
+                </form>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
+            </div>
+        </div>
+    </div>
 </div>
 <script>
     function getCells(name) {
-        // console.log('show');
-        // $('#loadingModal').modal('show');
+        $("html").append(
+            '<div id="ui-mask-div" style="z-index: 99999; position:absolute;top:0;bottom:0;left:0;right: 0;">' +
+            '<div style="position:absolute;top:50%;left:50%;">' +
+            '<img src="/static/image/loading.gif" alt=""/><span>操作正在进行中，请耐心等待......</span>' +
+            '</div></div>');
         $.ajax({
             url: "/table/" + name,
             type: "GET",
@@ -53,6 +75,8 @@
                     var length = item.cells.length;
                     var rowKey = "<td rowspan="+length+">" + item.rowKey + "<br/>" +
                         "<a href='/del/" + name + "/"+ item.rowKey +"'>删除</a></td>";
+                    var action = '<td rowspan='+length+'>' +
+                        '<button type="button" class="btn" data='+JSON.stringify(item.cells)+'>添加</button></td>';
                     var isKey = true;
                     item.cells.forEach(function (cell) {
                         var family = "<td>" + cell.family + "</td>";
@@ -60,7 +84,7 @@
                         var value = "<td>" + cell.value + "</td>";
                         var tags = "<td>" + cell.tags + "</td>";
                         if(isKey){
-                            var tr = $("<tr></tr>").append(rowKey, family, qualifier, value, tags);
+                            var tr = $("<tr></tr>").append(rowKey, family, qualifier, value, tags, action);
                             $("#table").append(tr);
                             isKey = false;
                         }else{
@@ -72,17 +96,30 @@
             },
             error: function(xhr,status,error) {
                 alert("状态: " + status);
-                console.log('hide');
-                $('#loadingModal').modal('hide');
+                $("#ui-mask-div").remove();
+                bind();
             },
             complete: function(xhr,status){
-                console.log('hide');
-                $('#loadingModal').modal('hide');
+                $("#ui-mask-div").remove();
+                bind();
             }
         })
+    }
+
+    function bind(){
+        $("button").bind("click",function(e){
+            var data = $(e.target).attr("data");
+            console.log(JSON.parse(data))
+            $('#myModal').modal('show');
+        });
     }
 </script>
 <script src="/static/jquery/jquery-3.2.0.min.js"></script>
 <script src="/static/bootstrap/js/bootstrap.min.js"></script>
+<script>
+    $(function() {
+
+    });
+</script>
 </body>
 </html>

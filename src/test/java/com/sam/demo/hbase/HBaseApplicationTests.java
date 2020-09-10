@@ -31,8 +31,8 @@ public class HBaseApplicationTests {
 
     @Test
     public void testPutData() {
-        HCell hCell1 = new HCell("000001", "a", "test1", "12345");
-        HCell hCell2 = new HCell("000001", "a", "test2", "12345");
+        HCell hCell1 = new HCell("000001", "a", "test1", "12346");
+        HCell hCell2 = new HCell("000001", "a", "test2", "12346");
         hbaseService.putData("test_base", hCell1);
         hbaseService.putData("test_base", hCell2);
     }

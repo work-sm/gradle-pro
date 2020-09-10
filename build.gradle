@@ -54,17 +54,3 @@ configurations {
         extendsFrom annotationProcessor
     }
 }
-
-bootJar {
-    baseName = 'service'
-    version = '1.0'
-}
-
-jar {
-    manifest {
-        attributes(
-                "Manifest-Version": 1.0,
-                'Main-Class': 'com.sam.demo.BootApplication'
-        )
-    }
-}
