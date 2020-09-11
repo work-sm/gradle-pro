@@ -39,7 +39,8 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-configuration-processor'
     implementation 'org.apache.hbase:hbase-shaded-client:1.4.6'
     implementation 'joda-time:joda-time:2.10.4'
-
+    compile('org.springframework.boot:spring-boot-starter-websocket')
+    compile group: 'org.springframework.boot', name: 'spring-boot-starter-cache'
     compile group: 'org.antlr', name: 'antlr4-runtime', version: '4.8'
 
     testImplementation 'org.jmockit:jmockit:1.40'
