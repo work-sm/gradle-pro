@@ -7,11 +7,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Controller
@@ -29,15 +30,15 @@ public class IndexController {
 
     @GetMapping("/table/{name}")
     @ResponseBody
-    public Collection<HRow> index(@PathVariable String name) {
+    public Collection<HRow> select(@PathVariable String name) {
         List<HCell> hCells = hbaseService.queryData(name);
         Map<String, HRow> rows = new HashMap<>();
         hCells.forEach(cell -> {
             String rowKey = cell.getRowKey();
-            if(rows.containsKey(rowKey)){
+            if (rows.containsKey(rowKey)) {
                 HRow hRow = rows.get(rowKey);
                 hRow.add(cell);
-            }else{
+            } else {
                 HRow hRow = new HRow(rowKey);
                 hRow.add(cell);
                 rows.put(rowKey, hRow);
@@ -47,10 +48,18 @@ public class IndexController {
     }
 
     @GetMapping("/del/{name}/{key}")
-    public String index(@PathVariable String name, @PathVariable String key, ModelMap map) {
+    public String del(@PathVariable String name, @PathVariable String key, ModelMap map) {
         hbaseService.delete(name, key);
-        log.info("table {} rowKey {} deleted");
+        log.info("table {} rowKey {} deleted", name, key);
         return index(map);
+    }
+
+    @PostMapping("/save/{name}")
+    @ResponseBody
+    public Collection<HRow> save(@PathVariable String name, HRow hRow) {
+        List<HCell> cells = hRow.getCells();
+        hbaseService.putData(name, cells);
+        return select(name);
     }
 
 }
