@@ -18,8 +18,13 @@ import java.util.Map;
 @Controller
 public class IndexController {
 
-    @Autowired
+    @Autowired(required = false)
     private HBaseService hbaseService;
+
+    @GetMapping("/ws")
+    public String index() {
+        return "ws";
+    }
 
     @GetMapping({"/", "/index"})
     public String index(ModelMap map) {

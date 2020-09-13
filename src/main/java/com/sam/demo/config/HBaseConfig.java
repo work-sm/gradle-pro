@@ -6,8 +6,8 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-@Configuration
-@EnableConfigurationProperties({HBaseProperties.class})
+//@Configuration
+//@EnableConfigurationProperties({HBaseProperties.class})
 public class HBaseConfig {
 
     private static final String HBASE_QUORUM = "hbase.zookeeper.quorum";

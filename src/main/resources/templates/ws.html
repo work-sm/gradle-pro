@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="cn" xml:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Title</title>
+    <script src="/static/sockjs-client/sockjs.min.js"></script>
+    <script src="/static/stomp/stomp.js"></script>
+    <script src="/static/jquery/jquery-3.2.0.min.js"></script>
+</head>
+<body onload="disconnect()">
+<noscript><h2 style="color: #e80b0a;">Sorry，浏览器不支持WebSocket</h2></noscript>
+
+<div>
+    <button id="connect" onclick="connect()">连接</button>
+    <button id="disconnect" disabled="disabled" onclick="disconnect()">断开连接</button>
+</div>
+
+<div>
+    <label>订阅地址</label>
+    <input type="text" id="dest"/>
+    <button id="subscribe" disabled="disabled" onclick="subscribe()">订阅</button>
+</div>
+
+<div>
+    <label>消息</label>
+    <input type="text" id="msg"/>
+    <button id="send" disabled="disabled" onclick="send()">发送</button>
+</div>
+
+<div id="response"></div>
+
+</body>
+<script>
+    var stompClient = null;
+
+    window.onunload = function() {
+        disconnect();
+    };
+
+    function setConnected(connected) {
+        document.getElementById("connect").disabled = connected;
+        document.getElementById('disconnect').disabled = !connected;
+        document.getElementById('subscribe').disabled = !connected;
+        document.getElementById('send').disabled = !connected;
+        $('#response').empty();
+    }
+
+    function connect() {
+        var socket = new SockJS('/socket');
+        stompClient = Stomp.over(socket);
+        stompClient.connect({}, function (frame) {
+            console.log('Connected:' + frame);
+            setConnected(true);
+        });
+    }
+
+    function disconnect() {
+        if (stompClient != null) {
+            stompClient.disconnect();
+        }
+        setConnected(false);
+    }
+
+    // /topic/toAny
+    // /user/sam/topic/toUser
+    function subscribe(){
+        var dest = $('#dest').val();
+        stompClient.subscribe(dest, function (response) {
+            var msg = JSON.parse(response.body).msg;
+            $('#response').append('<p>'+msg+'</p>');
+        });
+    }
+
+    function send() {
+        var msg = $('#msg').val();
+        stompClient.send('/app/welcome1', {}, JSON.stringify({'msg': msg}));
+    }
+
+</script>
+</html>
