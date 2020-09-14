@@ -3,6 +3,8 @@ package com.sam.demo.hbase.controller;
 import com.sam.demo.hbase.HBaseService;
 import com.sam.demo.hbase.HCell;
 import com.sam.demo.hbase.HRow;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -16,6 +18,7 @@ import java.util.Map;
 
 @Slf4j
 @Controller
+@Api(value = "IndexController")
 public class IndexController {
 
     @Autowired(required = false)
@@ -26,7 +29,7 @@ public class IndexController {
         return "ws";
     }
 
-    @GetMapping({"/", "/index"})
+    @GetMapping({"/index"})
     public String index(ModelMap map) {
         List<String> allTableNames = hbaseService.getAllTableNames();
         map.addAttribute("tables", allTableNames);
