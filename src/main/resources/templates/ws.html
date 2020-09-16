@@ -3,45 +3,85 @@
 <head>
     <meta charset="UTF-8"/>
     <title>Title</title>
-    <script src="/static/sockjs-client/sockjs.min.js"></script>
-    <script src="/static/stomp/stomp.js"></script>
-    <script src="/static/jquery/jquery-3.2.0.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="/static/bootstrap/css/bootstrap.min.css">
 </head>
 <body onload="disconnect()">
 <noscript><h2 style="color: #e80b0a;">Sorry，浏览器不支持WebSocket</h2></noscript>
 
-<div>
-    <button id="connect" onclick="connect()">连接</button>
-    <button id="disconnect" disabled="disabled" onclick="disconnect()">断开连接</button>
+<div class="row">
+    <div class="col-6 offset-3">
+        <button id="connect" class="btn" onclick="connect()">连接</button>
+        <button id="disconnect" class="btn" disabled="disabled" onclick="disconnect()">断开连接</button>
+    </div>
 </div>
-
-<div>
-    <label>订阅地址</label>
-    <input type="text" id="dest"/>
-    <button id="subscribe" disabled="disabled" onclick="subscribe()">订阅</button>
+<div class="row">
+    <div class="col-6 m-2">
+        <div id="modalBody">
+            <div class="form-group">
+                <label for="type">类型:</label>
+                <select class="form-control" id="type" name="type">
+                    <option value="1">公共</option>
+                    <option value="2">私有</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="target">目标地址:</label>
+                <input class="form-control" id="target" name="target">
+            </div>
+            <div class="form-group">
+                <label for="name">用户:</label>
+                <input class="form-control" id="name" name="name">
+            </div>
+            <div class="form-group">
+                <label for="loop">循环:</label>
+                <select class="form-control" id="loop" name="loop">
+                    <option value="1">永久</option>
+                    <option value="3">3</option>
+                    <option value="5">5</option>
+                    <option value="10">10</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="msg">内容:</label>
+                <textarea class="form-control" rows="5" id="msg"></textarea>
+            </div>
+            <div class="clearfix">
+                <button id="send" disabled="disabled" class="btn float-right" onclick="sendMsg()">发送</button>
+            </div>
+        </div>
+        <hr/>
+        <div>
+            <label>订阅地址</label>
+            <input type="text" id="dest"/>
+            <div class="clearfix">
+                <button id="subscribe" disabled="disabled" class="btn float-right" onclick="subscribe()">订阅</button>
+            </div>
+        </div>
+    </div>
+    <div class="col-4 bg-light text-dark">
+        <div id="response"></div>
+    </div>
 </div>
-
-<div>
-    <label>消息</label>
-    <input type="text" id="msg"/>
-    <button id="send" disabled="disabled" onclick="send()">发送</button>
-</div>
-
-<div id="response"></div>
 
 </body>
+<script src="/static/jquery/jquery-3.2.0.min.js"></script>
+<script src="/static/bootstrap/js/bootstrap.min.js"></script>
+<script src="/static/sockjs-client/sockjs.min.js"></script>
+<script src="/static/stomp/stomp.js"></script>
 <script>
     var stompClient = null;
+    var subscription = null;
 
     window.onunload = function() {
         disconnect();
     };
 
     function setConnected(connected) {
-        document.getElementById("connect").disabled = connected;
-        document.getElementById('disconnect').disabled = !connected;
-        document.getElementById('subscribe').disabled = !connected;
-        document.getElementById('send').disabled = !connected;
+        $('#connect').attr("disabled", connected);
+        $('#disconnect').attr("disabled", !connected);
+        $('#subscribe').attr("disabled", !connected);
+        $('#send').attr("disabled", !connected);
         $('#response').empty();
     }
 
@@ -61,19 +101,43 @@
         setConnected(false);
     }
 
-    // /topic/toAny
-    // /user/sam/topic/toUser
     function subscribe(){
+        $('#response').empty();
         var dest = $('#dest').val();
-        stompClient.subscribe(dest, function (response) {
-            var msg = JSON.parse(response.body).msg;
+        if(subscription != null){
+            subscription.unsubscribe();
+        }
+        subscription = stompClient.subscribe(dest, function (response) {
+            var msg = JSON.parse(response.body);
             $('#response').append('<p>'+msg+'</p>');
         });
     }
 
-    function send() {
-        var msg = $('#msg').val();
-        stompClient.send('/app/welcome1', {}, JSON.stringify({'msg': msg}));
+    function sendMsg() {
+        var type = $("#type").val();
+        var target = $("#target").val();
+        var name = $("#name").val();
+        var msg = $("#msg").val();
+        console.log(type, target, name, msg);
+        $.ajax({
+            url: "/msg",
+            type: "POST",
+            contentType: "application/json",
+            data : JSON.stringify({
+                "type": type,
+                "target": target,
+                "name": name,
+                "msg": msg
+            }),
+            success: function(result,status,xhr) {
+                $('#dest').val(result);
+            },
+            error: function(xhr,status,error) {
+                alert("状态: " + status);
+            },
+            complete: function(xhr,status){
+            }
+        })
     }
 
 </script>
