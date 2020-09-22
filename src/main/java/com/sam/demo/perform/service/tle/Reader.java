@@ -22,7 +22,7 @@ public class Reader extends NopActor {
     }
 
     @Override
-    public void visit(Story story) throws IOException {
+    public void visit(Story story) throws Exception {
         log.info("获取结果");
         TleStory tleStory = (TleStory) story;
         bfr.seek(0);

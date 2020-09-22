@@ -55,11 +55,14 @@ dependencies {
     compile('org.springframework.cloud:spring-cloud-starter-alibaba-nacos-config:0.2.1.RELEASE'){
         exclude group: 'ch.qos.logback', module: 'logback-classic'
     }
-    compile('com.alibaba.boot:nacos-discovery-spring-boot-starter:0.2.2.RELEASE'){
+    compile('org.springframework.cloud:spring-cloud-starter-alibaba-nacos-discovery:0.2.2.RELEASE'){
         exclude group: 'ch.qos.logback', module: 'logback-classic'
         exclude group: 'com.alibaba.nacos', module: 'nacos-client'
     }
     compile group: 'com.alibaba.nacos', name: 'nacos-client', version: '1.1.0'
+    compile('org.springframework.cloud:spring-cloud-starter-openfeign:2.0.0.RELEASE'){
+        exclude group: 'ch.qos.logback', module: 'logback-classic'
+    }
 
     testImplementation 'org.jmockit:jmockit:1.40'
     testImplementation 'junit:junit'

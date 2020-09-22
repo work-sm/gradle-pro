@@ -22,6 +22,7 @@ public class EpochTimeUtils {
         calendar.setTimeInMillis(Long.parseLong(time));
         calendar.set(Calendar.SECOND, 0);
         calendar.set(Calendar.MILLISECOND, 0);
+        calendar.add(Calendar.HOUR, 8);
         return calendar.getTime().getTime();
     }
 

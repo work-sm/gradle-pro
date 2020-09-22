@@ -10,6 +10,7 @@ import com.sam.demo.perform.clock.SimpleClock;
 import java.util.UUID;
 
 public class Main {
+
     public static void main(String[] args) throws Exception {
         String[] params = new String[]{
                 "1 40908U 15049K   20198.78459397  .00000322  00000-0  21304-4 0  9993\n" +
@@ -22,10 +23,10 @@ public class Main {
 
         Clock clock = new SimpleClock();
         // pc 唯一
-        Actor exe = new SleepWaitExecutor("C:\\runtime\\tle0\\bin", "TLE_J2000KEPL");
+        Actor exe = new SleepWaitExecutor("C:\\runtime\\tle0\\bin", "TLE_J2000KEPL", 300);
         Actor reader = new Reader("C:\\runtime\\tle0\\bin\\J2000KEPL.TXT", "reader");
         Actor writer = new Writer("C:\\runtime\\tle0\\bin\\TLE.txt", "writer");
-        Director director = new Director(1, clock);
+        Director director = new Director(clock);
         director.register(exe);
         director.register(reader);
         director.register(writer);
