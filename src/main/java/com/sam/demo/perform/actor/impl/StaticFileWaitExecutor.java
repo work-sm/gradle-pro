@@ -15,12 +15,12 @@ public class StaticFileWaitExecutor extends Executor {
     private final int millis;
     private final File staticFile;
 
-    public StaticFileWaitExecutor(String path, String name) throws IOException {
-        this(path, name, 1000);
+    public StaticFileWaitExecutor(String path, String name, String[] command) throws IOException {
+        this(path, name, command, 1000);
     }
 
-    public StaticFileWaitExecutor(String path, String name, int millis) throws IOException {
-        super(path, name);
+    public StaticFileWaitExecutor(String path, String name, String[] command, int millis) throws IOException {
+        super(path, name, command);
         this.millis = millis;
         this.staticFile = new File(new File(path).getParent(), "/POD/ODTKS/consoleOut.txt");
         FileUtil.del(staticFile);

@@ -39,6 +39,7 @@ public class StoryRobot implements Robot<Story> {
                     story.accept(actorTable.get(actor));
                 } catch (Exception e) {
                     story.setState(false);
+                    story.setThrowable(e);
                     // 异常打断了循环体，手动释放,非优雅处理
                     releaseAll(stage, step);
                     clock.clock(story, "指令异常");

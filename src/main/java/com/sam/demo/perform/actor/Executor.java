@@ -46,9 +46,9 @@ public abstract class Executor extends SingleActor {
     private String sign = "EXE_IS_OK";
     private Semaphore lock = new Semaphore(0);
 
-    public Executor(String path, String name) throws IOException {
+    public Executor(String path, String name, String[] command) throws IOException {
         this.name = name;
-        process = new ProcessBuilder("cmd")
+        process = new ProcessBuilder(command)
                 .directory(new File(path))
                 .start();
         outputStream = process.getOutputStream();

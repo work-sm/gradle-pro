@@ -8,12 +8,12 @@ public class SleepWaitExecutor extends Executor {
 
     private final int millis;
 
-    public SleepWaitExecutor(String path, String name) throws IOException {
-        this(path, name, 1000);
+    public SleepWaitExecutor(String path, String name, String[] command) throws IOException {
+        this(path, name, command, 1000);
     }
 
-    public SleepWaitExecutor(String path, String name, int millis) throws IOException {
-        super(path, name);
+    public SleepWaitExecutor(String path, String name, String[] command, int millis) throws IOException {
+        super(path, name, command);
         this.millis = millis;
     }
 

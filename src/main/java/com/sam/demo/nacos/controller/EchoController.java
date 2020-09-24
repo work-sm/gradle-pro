@@ -28,12 +28,12 @@ public class EchoController {
     @Autowired
     private RestTemplate restTemplate;
 
-    @Autowired
+    @Autowired(required = false)
     private EchoService echoService;
 
     @GetMapping(value = "/echo/{string}")
     public String echo(@PathVariable String string) {
-        return string;
+        return sampleBean.getUserName() + sampleBean.getAge() + string;
     }
 
     @GetMapping(value = "/test")

@@ -39,6 +39,8 @@ public class Director {
 
     private final boolean hunger;
 
+    private final List<Story> stories = new ArrayList<>();
+
     public Director(int nThreads, Clock clock) {
         this.hunger = false;
         this.pool = new ThreadPoolExecutor(nThreads, nThreads,
@@ -79,7 +81,7 @@ public class Director {
             scene.story(story);
             this.pool.execute(scene);
         }
-
+        stories.add(story);
     }
 
     private void ready(List<Order> actors) throws Exception {
@@ -99,6 +101,14 @@ public class Director {
         while (!pool.awaitTermination(1000, TimeUnit.MILLISECONDS)){
             log.info("await pool...");
         }
+        for (Story story: stories){
+            if(!story.isState()){
+                log.info("异常抛出");
+                Throwable throwable = story.getThrowable();
+                throw new Exception(throwable);
+            }
+        }
+        log.info("正常结束");
     }
 
 }

@@ -30,7 +30,8 @@ public class Story implements Script{
     private LinkedList<Order> stage = new LinkedList<>();
     private AtomicInteger total = new AtomicInteger();
     private AtomicInteger index = new AtomicInteger();
-
+    private Throwable throwable;
+    
     @Override
     public void stepping() {
         index.getAndIncrement();
