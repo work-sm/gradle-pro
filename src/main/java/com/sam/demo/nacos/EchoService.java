@@ -1,12 +1,11 @@
 package com.sam.demo.nacos;
 
 import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.*;
 
-@FeignClient(name = "nacos-config-example")
+@FeignClient("test")
+@RestController
 public interface EchoService {
-    @RequestMapping(value = "/echo/{str}", method = RequestMethod.GET)
+    @GetMapping("/echo/{str}")
     String echo(@PathVariable("str") String str);
 }

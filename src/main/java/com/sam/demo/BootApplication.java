@@ -26,7 +26,7 @@ public class BootApplication implements WebMvcConfigurer {
             String username = environment.getProperty("test.name");
             String age = environment.getProperty("test.age");
             System.out.println("username:"+username+" | age:"+age);
-            TimeUnit.SECONDS.sleep(1);
+            TimeUnit.SECONDS.sleep(5);
         }
     }
 
