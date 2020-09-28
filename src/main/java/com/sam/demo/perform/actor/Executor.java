@@ -137,10 +137,10 @@ public abstract class Executor extends SingleActor {
         queue.put(name);
         lock.acquire();
         // 收到信号，并未刷新返回文件
-        strategy();
+        strategy(story);
     }
 
-    protected abstract void strategy() throws Exception;
+    protected abstract void strategy(Story story) throws Exception;
 
     @Override
     public void close() throws Exception {

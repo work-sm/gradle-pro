@@ -1,6 +1,7 @@
 package com.sam.demo.perform.actor.impl;
 
 import com.sam.demo.perform.actor.Executor;
+import com.sam.demo.perform.script.Story;
 
 import java.io.IOException;
 
@@ -18,7 +19,7 @@ public class SleepWaitExecutor extends Executor {
     }
 
     @Override
-    protected void strategy() throws Exception {
+    protected void strategy(Story story) throws Exception {
         Thread.sleep(millis);
     }
 

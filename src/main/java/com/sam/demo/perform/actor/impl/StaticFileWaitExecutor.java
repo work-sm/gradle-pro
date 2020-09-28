@@ -2,6 +2,7 @@ package com.sam.demo.perform.actor.impl;
 
 import cn.hutool.core.io.FileUtil;
 import com.sam.demo.perform.actor.Executor;
+import com.sam.demo.perform.script.Story;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
@@ -27,7 +28,7 @@ public class StaticFileWaitExecutor extends Executor {
     }
 
     @Override
-    protected void strategy() throws Exception {
+    protected void strategy(Story story) throws Exception {
         while (!staticFile.exists()) {
             Thread.sleep(millis);
         }
@@ -35,6 +36,8 @@ public class StaticFileWaitExecutor extends Executor {
             String s = FileUtil.readLine(input, Charset.forName("UTF-8"));
             if (Integer.parseInt(s) < 0) {
                 log.warn("exe 运行异常，请查看日志信息");
+                story.setState(false);
+                story.setThrowable(new Exception("exe 运行异常，请查看日志信息"));
             } else {
                 log.info("exe 运行正常结束");
             }
