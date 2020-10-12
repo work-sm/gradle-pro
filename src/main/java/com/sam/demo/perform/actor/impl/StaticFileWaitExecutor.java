@@ -37,7 +37,7 @@ public class StaticFileWaitExecutor extends Executor {
             if (Integer.parseInt(s) < 0) {
                 log.warn("exe 运行异常，请查看日志信息");
                 story.setState(false);
-                story.setThrowable(new Exception("exe 运行异常，请查看日志信息"));
+                story.setThrowable(new Exception("部分运算参数异常，请下载查看日志文件"));
             } else {
                 log.info("exe 运行正常结束");
             }

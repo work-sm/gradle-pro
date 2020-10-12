@@ -9,9 +9,9 @@ import java.util.concurrent.Semaphore;
 @Slf4j
 public class Check2Utils {
 
-    public static void process(String path, String commod) throws Exception {
+    public static void process(String[] command, String path, String commod) throws Exception {
         Semaphore semaphore = new Semaphore(1);
-        Process process = new ProcessBuilder("cmd")
+        Process process = new ProcessBuilder(command)
                 .directory(new File(path))
                 .start();
 
@@ -35,7 +35,7 @@ public class Check2Utils {
                 if(isOk){
                     semaphore.release();
                 }
-            } catch (IOException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             } finally {
                 try {
@@ -57,7 +57,7 @@ public class Check2Utils {
                 if (isErr) {
                     semaphore.release();
                 }
-            } catch (IOException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             } finally {
                 try {
@@ -69,10 +69,12 @@ public class Check2Utils {
         }).start();
 
         try {
-            bw.write("@echo off\n"+commod+"\necho TEST_IS_OK\n");
-            bw.flush();
+            bw.write(commod);
+//            bw.flush();
             semaphore.acquire();
             Thread.sleep(1000);
+        } catch (Exception e) {
+            e.printStackTrace();
         } finally {
             try {
                 outputStream.close();
@@ -84,25 +86,28 @@ public class Check2Utils {
 
     public static void main(String[] args) {
         try {
-            process("C:/runtime/pod0/POD_windows", "PODMenu -path C:/runtime/pod0/POD/ODTKS -sat TT02 -mdp -pod -op");
-//            process("C:/runtime/pod0/POD_windows", "test.bat");
+//            process(new String[]{"pwd"}, "/home/sam/product/exe", "echo hello");
 
-            Process p = new ProcessBuilder("C:\\runtime\\pod0\\POD_windows\\PODMenu.exe","-path C:/runtime/pod0/POD/ODTKS", "-sat TT02", "-mdp", "-pod", "-op")
-                    .directory(new File("C:\\runtime\\pod0\\POD_windows"))
+            Process p = new ProcessBuilder("./tmdp", "0202")
+                    .directory(new File("/home/sam/product/exe"))
                     .start();
-//            Process p = Runtime.getRuntime().exec("C:/runtime/pod0/POD_windows/PODMenu.exe -path C:/runtime/pod0/POD/ODTKS -sat TT02 -mdp -pod -op");
 //            Process p = Runtime.getRuntime().exec("C:/runtime/pod0/POD_windows/test.bat");
             InputStream ins= p.getInputStream();
             InputStream ers= p.getErrorStream();
             BufferedReader inputReader = new BufferedReader(new InputStreamReader(ins, Charset.forName("GBK")));
+            BufferedReader errReader = new BufferedReader(new InputStreamReader(ers, Charset.forName("GBK")));
             String line;
             while ((line = inputReader.readLine()) != null) {
                 log.info("[in ]" + line);
+            }
+            while ((line = errReader.readLine()) != null) {
+                log.error("[err ]" + line);
             }
             p.waitFor();
         } catch (Exception e) {
             e.printStackTrace();
         }
+        System.out.printf("123");
     }
 
 }
